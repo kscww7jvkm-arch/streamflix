@@ -1087,7 +1087,7 @@ findPreference<EditTextPreference>("provider_url")?.apply {
                 isVavooLive ||
                 hasGenericDomain
 
-        findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
+findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
             hasGenericDomain
         findPreference<PreferenceCategory>("pc_streamingcommunity_settings")?.isVisible = isStreamingCommunity
         findPreference<PreferenceCategory>("pc_serienstream_settings")?.isVisible = isSerienStream

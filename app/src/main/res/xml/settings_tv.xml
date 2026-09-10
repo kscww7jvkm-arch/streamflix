@@ -7,6 +7,9 @@
         android:summary="@string/settings_screen_content_summary"
         android:widgetLayout="@layout/preference_widget_chevron">
 
+
+
+
         <PreferenceCategory
             android:title="@string/settings_tmdb_streaming_catalogs">
 
@@ -299,6 +302,11 @@
                 android:summaryOn="@string/settings_frenchstream_use_new_interface_on"
                 android:summaryOff="@string/settings_frenchstream_use_new_interface_off" />
         </PreferenceCategory>
+
+
+        
+
+        
 
 
         <PreferenceCategory
