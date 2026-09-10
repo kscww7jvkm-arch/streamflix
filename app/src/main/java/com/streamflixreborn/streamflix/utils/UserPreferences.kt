@@ -41,7 +41,9 @@ object UserPreferences {
 
     private const val DEFAULT_VAVOO_DOMAIN = "https://vavoo.to"
     private const val DEFAULT_KINOGER_DOMAIN = "https://kinoger.fun"
+    private const val DEFAULT_KELLERKINO_DOMAIN = "https://www.kellerkino.com"
     private const val KINOGER_CACHE_NAME = "__KINOGER_GLOBAL__"
+    private const val KELLERKINO_CACHE_NAME = "Kellerkino"
     private const val VAVOO_CACHE_NAME = "__VAVOO_GLOBAL__"
 
     var vavooDomain: String
@@ -114,6 +116,61 @@ object UserPreferences {
             }
             Key.PROVIDER_CACHE.setString(providerCache.toString())
         }
+    }
+
+    var kellerkinoDomain: String
+        get() {
+            val stored = providerCache
+                .optJSONObject(KELLERKINO_CACHE_NAME)
+                ?.optString(PROVIDER_URL)
+                .orEmpty()
+                .trim()
+
+            return normalizeKellerkinoDomain(
+                stored.ifBlank { DEFAULT_KELLERKINO_DOMAIN }
+            )
+        }
+        set(value) {
+            val normalized = normalizeKellerkinoDomain(value)
+                .ifBlank { DEFAULT_KELLERKINO_DOMAIN }
+
+            val innerJson = providerCache.optJSONObject(KELLERKINO_CACHE_NAME)
+                ?: JSONObject().also {
+                    providerCache.put(KELLERKINO_CACHE_NAME, it)
+                }
+
+            innerJson.put(PROVIDER_URL, normalized)
+            Key.PROVIDER_CACHE.setString(providerCache.toString())
+        }
+
+    fun resetKellerkinoDomain() {
+        val innerJson = providerCache.optJSONObject(KELLERKINO_CACHE_NAME)
+
+        if (innerJson != null) {
+            innerJson.remove(PROVIDER_URL)
+
+            if (innerJson.length() == 0) {
+                providerCache.remove(KELLERKINO_CACHE_NAME)
+            }
+
+            Key.PROVIDER_CACHE.setString(providerCache.toString())
+        }
+    }
+
+    private fun normalizeKellerkinoDomain(value: String): String {
+        var result = value.trim()
+
+        if (result.isBlank()) {
+            return DEFAULT_KELLERKINO_DOMAIN
+        }
+
+        if (!result.startsWith("http://") &&
+            !result.startsWith("https://")
+        ) {
+            result = "https://$result"
+        }
+
+        return result.trimEnd('/')
     }
 
     private fun normalizeKinogerDomain(value: String): String {

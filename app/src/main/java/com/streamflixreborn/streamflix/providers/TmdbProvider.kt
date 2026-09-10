@@ -913,6 +913,13 @@ class TmdbProvider(override val language: String) : Provider {
                 tvShows = true,
             ),
             GermanTmdbProvider(
+                "kellerkino",
+                "Kellerkino",
+                KellerKinoProvider,
+                movies = true,
+                tvShows = false,
+            ),
+            GermanTmdbProvider(
                 "hdfilme",
                 "HDFilme",
                 HDFilmeProvider,
@@ -1059,6 +1066,7 @@ class TmdbProvider(override val language: String) : Provider {
         when (key) {
             "vavoo" -> VavooVodProvider
             "kinoger" -> KinoGerProvider
+            "kellerkino" -> KellerKinoProvider
             "hdfilme" -> HDFilmeProvider
             "megakino" -> MEGAKinoProvider
             "filmpalast" -> FilmPalastProvider
