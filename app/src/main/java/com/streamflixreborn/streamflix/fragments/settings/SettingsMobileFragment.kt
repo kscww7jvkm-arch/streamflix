@@ -1054,9 +1054,25 @@ findPreference<EditTextPreference>("provider_url")?.apply {
         val isCuevana = UserPreferences.currentProvider?.name == "Cuevana 3"
         val isPoseidon = UserPreferences.currentProvider?.name == "Poseidonhd2"
         val isAnimeOnlineNinja = UserPreferences.currentProvider is AnimeOnlineNinjaProvider
+        val currentProviderName =
+            UserPreferences.currentProvider?.name.orEmpty()
+
+        val isKinoGer =
+            currentProviderName == "KinoGer"
+
+        val isVavooVod =
+            currentProviderName == "Vavoo VOD"
+
+        val isVavooLive =
+            currentProviderName.startsWith("Vavoo ") &&
+                currentProviderName.endsWith(" Live TV")
+
         val hasGenericDomain =
             configurableDomainDefault(UserPreferences.currentProvider?.name) != null
-        val hasConfigProvider = UserPreferences.currentProvider is ProviderConfigUrl
+
+        val hasConfigProvider =
+            UserPreferences.currentProvider is ProviderConfigUrl
+
         val hasSpecificOptions =
             isStreamingCommunity ||
                 isSerienStream ||
@@ -1064,6 +1080,9 @@ findPreference<EditTextPreference>("provider_url")?.apply {
                 isCuevana ||
                 isPoseidon ||
                 isAnimeOnlineNinja ||
+                isKinoGer ||
+                isVavooVod ||
+                isVavooLive ||
                 hasGenericDomain
 
         findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
@@ -1074,6 +1093,14 @@ findPreference<EditTextPreference>("provider_url")?.apply {
         findPreference<PreferenceCategory>("pc_cuevana_settings")?.isVisible = isCuevana
         findPreference<PreferenceCategory>("pc_poseidon_settings")?.isVisible = isPoseidon
         findPreference<PreferenceCategory>("pc_animeonlineninja_settings")?.isVisible = isAnimeOnlineNinja
+        findPreference<PreferenceCategory>(
+            "pc_kinoger_domain_settings"
+        )?.isVisible = isKinoGer
+
+        findPreference<PreferenceCategory>(
+            "pc_vavoo_domain_settings"
+        )?.isVisible = isVavooVod || isVavooLive
+
         findPreference<PreferenceCategory>("pc_provider_empty_state")?.isVisible = !hasConfigProvider && !hasSpecificOptions
     }
 
