@@ -510,4 +510,10 @@
     <string name="settings_provider_kinoger_domain">KinoGer-Domain</string>
     <string name="settings_provider_kinoger_domain_summary">Basisdomain für KinoGer ändern</string>
     <string name="settings_provider_kinoger_domain_reset">KinoGer-Domain zurücksetzen</string>
+
+    <string name="settings_provider_domain_check">Domain prüfen / aktualisieren</string>
+    <string name="settings_provider_domain_check_summary">Weiterleitungen prüfen und eine neue Domain automatisch übernehmen</string>
+    <string name="settings_provider_domain_check_current">Domain ist bereits aktuell</string>
+    <string name="settings_provider_domain_check_updated">Neue Domain übernommen: %1$s</string>
+    <string name="settings_provider_domain_check_failed">Domain-Prüfung fehlgeschlagen: %1$s</string>
 </resources>

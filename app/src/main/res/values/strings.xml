@@ -606,4 +606,10 @@
     <string name="settings_provider_kinoger_domain">KinoGer domain</string>
     <string name="settings_provider_kinoger_domain_summary">Override the KinoGer base domain</string>
     <string name="settings_provider_kinoger_domain_reset">Reset KinoGer domain</string>
+
+    <string name="settings_provider_domain_check">Check / update domain</string>
+    <string name="settings_provider_domain_check_summary">Follow redirects and automatically save a new provider domain</string>
+    <string name="settings_provider_domain_check_current">Domain is already current</string>
+    <string name="settings_provider_domain_check_updated">New domain saved: %1$s</string>
+    <string name="settings_provider_domain_check_failed">Domain check failed: %1$s</string>
 </resources>
