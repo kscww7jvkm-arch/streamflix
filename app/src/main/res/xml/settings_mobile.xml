@@ -294,6 +294,24 @@
                 app:iconSpaceReserved="false" />
         </PreferenceCategory>
 
+
+        <PreferenceCategory
+            android:key="pc_generic_provider_domain_settings"
+            android:title="@string/settings_category_provider_domain">
+
+            <EditTextPreference
+                android:key="provider_domain_generic"
+                android:title="@string/settings_provider_domain"
+                android:summary="@string/settings_provider_domain_summary"
+                android:inputType="textUri" />
+
+            <Preference
+                android:key="provider_domain_generic_reset"
+                android:title="@string/settings_provider_domain_reset"
+                android:summary="@string/settings_provider_domain_reset_summary" />
+
+        </PreferenceCategory>
+
         <PreferenceCategory
             android:key="pc_kinoger_domain_settings"
             android:title="@string/settings_provider_kinoger_domain">

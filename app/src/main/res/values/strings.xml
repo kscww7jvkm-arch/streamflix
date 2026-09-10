@@ -301,6 +301,12 @@
     <string name="settings_provider_no_options_title">No provider options available</string>
     <string name="settings_provider_no_options_summary">This provider does not expose any extra configuration right now.</string>
     <string name="settings_category_provider_url">Main URL</string>
+    <string name="settings_category_provider_domain">Provider domain</string>
+    <string name="settings_provider_domain">Domain</string>
+    <string name="settings_provider_domain_summary">Override the provider domain if the website moves to a new address.</string>
+    <string name="settings_provider_domain_reset">Reset domain</string>
+    <string name="settings_provider_domain_reset_summary">Restore the provider default domain.</string>
+    <string name="settings_provider_domain_reset_done">Provider domain reset to default.</string>
     <string name="settings_category_provider_url_manual">Enter manually</string>
     <string name="settings_category_provider_update_url">Portal URL</string>
     <string name="settings_autoupdate">Refresh main URL on startup</string>

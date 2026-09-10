@@ -244,6 +244,12 @@
     <string name="settings_category_network_title">Verbindung und Dienste</string>
     <string name="settings_category_provider_title">Anbietereinstellungen</string>
     <string name="settings_category_provider_url">Haupt-URL</string>
+    <string name="settings_category_provider_domain">Anbieter-Domain</string>
+    <string name="settings_provider_domain">Domain</string>
+    <string name="settings_provider_domain_summary">Domain des Anbieters ändern, wenn die Webseite auf eine neue Adresse wechselt.</string>
+    <string name="settings_provider_domain_reset">Domain zurücksetzen</string>
+    <string name="settings_provider_domain_reset_summary">Die Standard-Domain des Anbieters wiederherstellen.</string>
+    <string name="settings_provider_domain_reset_done">Anbieter-Domain wurde auf den Standard zurückgesetzt.</string>
     <string name="settings_category_provider_update_url">Portal-URL</string>
     <string name="settings_autoupdate">Haupt-URL beim Start aktualisieren</string>
     <string name="settings_autoupdate_on">An</string>
