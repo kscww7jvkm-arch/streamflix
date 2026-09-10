@@ -9,6 +9,9 @@
         android:widgetLayout="@layout/preference_widget_chevron"
         app:iconSpaceReserved="false">
 
+
+
+
         <PreferenceCategory
             android:key="pc_tmdb_settings"
             android:title="@string/settings_category_tmdb"
@@ -293,6 +296,11 @@
                 android:summaryOff="@string/settings_frenchstream_use_new_interface_off"
                 app:iconSpaceReserved="false" />
         </PreferenceCategory>
+
+
+        
+
+        
 
 
         <PreferenceCategory

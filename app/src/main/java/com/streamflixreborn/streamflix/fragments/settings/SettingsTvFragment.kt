@@ -640,7 +640,8 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
             true
         }
 
-        findPreference<EditTextPreference>("provider_url")?.apply {
+
+findPreference<EditTextPreference>("provider_url")?.apply {
                 isVisible = configProvider != null
                 isEnabled = autoUpdateVal == false
                 if (isVisible && provider != null && configProvider != null) {
@@ -1641,7 +1642,7 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
                 isVavooLive ||
                 hasGenericDomain
 
-        findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
+findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
             hasGenericDomain
         findPreference<PreferenceCategory>("pc_streamingcommunity_settings")?.isVisible = isStreamingCommunity
         findPreference<PreferenceCategory>("pc_serienstream_settings")?.isVisible = isSerienStream
