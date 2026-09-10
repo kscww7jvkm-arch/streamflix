@@ -615,4 +615,9 @@
     <string name="settings_tmdb_catalog_top_summary">Sort by rating</string>
     <string name="settings_tmdb_catalog_new">Newest</string>
     <string name="settings_tmdb_catalog_new_summary">Show newest content first</string>
+    <string name="settings_provider_domain_check">Check / update domain</string>
+    <string name="settings_provider_domain_check_summary">Follow redirects and automatically save a new provider domain</string>
+    <string name="settings_provider_domain_check_current">Domain is already current</string>
+    <string name="settings_provider_domain_check_updated">New domain saved: %1$s</string>
+    <string name="settings_provider_domain_check_failed">Domain check failed: %1$s</string>
 </resources>

@@ -519,4 +519,9 @@
     <string name="settings_tmdb_catalog_top_summary">Nach Bewertung sortieren</string>
     <string name="settings_tmdb_catalog_new">Neueste</string>
     <string name="settings_tmdb_catalog_new_summary">Neueste Inhalte zuerst</string>
+    <string name="settings_provider_domain_check">Domain prüfen / aktualisieren</string>
+    <string name="settings_provider_domain_check_summary">Weiterleitungen prüfen und eine neue Domain automatisch übernehmen</string>
+    <string name="settings_provider_domain_check_current">Domain ist bereits aktuell</string>
+    <string name="settings_provider_domain_check_updated">Neue Domain übernommen: %1$s</string>
+    <string name="settings_provider_domain_check_failed">Domain-Prüfung fehlgeschlagen: %1$s</string>
 </resources>

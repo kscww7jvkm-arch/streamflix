@@ -316,6 +316,12 @@
                 android:title="@string/settings_provider_domain_reset"
                 android:summary="@string/settings_provider_domain_reset_summary" />
 
+            <Preference
+                android:key="provider_domain_generic_check"
+                android:title="@string/settings_provider_domain_check"
+                android:summary="@string/settings_provider_domain_check_summary" />
+
+
         </PreferenceCategory>
 
         <PreferenceCategory
@@ -332,6 +338,12 @@
             <Preference
                 android:key="provider_kinoger_domain_reset"
                 android:title="@string/settings_provider_kinoger_domain_reset" />
+
+            <Preference
+                android:key="provider_kinoger_domain_check"
+                android:title="@string/settings_provider_domain_check"
+                android:summary="@string/settings_provider_domain_check_summary" />
+
 
         </PreferenceCategory>
 
@@ -381,6 +393,12 @@
                 android:key="provider_serienstream_domain_reset"
                 android:title="@string/settings_serienstream_domain_reset"
                 android:summary="@string/settings_serienstream_domain_reset_summary" />
+
+            <Preference
+                android:key="provider_serienstream_domain_check"
+                android:title="@string/settings_provider_domain_check"
+                android:summary="@string/settings_provider_domain_check_summary" />
+
         </PreferenceCategory>
 
         <PreferenceCategory
@@ -396,6 +414,12 @@
                 android:key="provider_moflix_domain_reset"
                 android:title="@string/settings_moflix_domain_reset"
                 android:summary="@string/settings_moflix_domain_reset_summary" />
+
+            <Preference
+                android:key="provider_moflix_domain_check"
+                android:title="@string/settings_provider_domain_check"
+                android:summary="@string/settings_provider_domain_check_summary" />
+
         </PreferenceCategory>
 
         <PreferenceCategory
