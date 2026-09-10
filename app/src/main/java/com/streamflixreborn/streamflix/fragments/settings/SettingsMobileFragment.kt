@@ -232,6 +232,7 @@ class SettingsMobileFragment : PreferenceFragmentCompat() {
     private fun displaySettings() {
         updateOverviewLabels()
         updateProviderVisibilityState()
+        bindGenericProviderDomain()
         SupabaseSettingsController.bind(this, lifecycleScope) { key ->
             findPreference(key)
         }
@@ -853,6 +854,81 @@ class SettingsMobileFragment : PreferenceFragmentCompat() {
         } ?: getString(R.string.settings_provider_connection_title)
     }
 
+
+    private fun configurableDomainDefault(providerName: String?): String? =
+        when (providerName) {
+            "AniWorld" -> "https://aniworld.to/"
+            "Filmpalast" -> "https://filmpalast.to/"
+            "HDFilme" -> "https://hdfilme.cafe/"
+            "MEGAKino" -> "https://megakino12.com"
+            "Einschalten" -> "https://einschalten.in"
+            else -> null
+        }
+
+    private fun bindGenericProviderDomain() {
+        val provider = UserPreferences.currentProvider ?: return
+        val defaultBaseUrl = configurableDomainDefault(provider.name) ?: return
+
+        findPreference<EditTextPreference>("provider_domain_generic")?.apply {
+            val displayDomain =
+                UserPreferences.providerDomainForDisplay(provider.name, defaultBaseUrl)
+
+            summary = displayDomain
+
+            val customDomain = UserPreferences.getProviderCustomDomain(provider.name)
+            text = customDomain.ifBlank { null }
+
+            setOnBindEditTextListener { editText ->
+                editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+                editText.imeOptions = EditorInfo.IME_ACTION_DONE
+                editText.hint = UserPreferences.providerDomainForDisplay(
+                    provider.name,
+                    defaultBaseUrl
+                )
+            }
+
+            setOnPreferenceChangeListener { preference, newValue ->
+                val typed = (newValue as String).trim()
+
+                if (typed.isBlank()) {
+                    UserPreferences.resetProviderCustomDomain(provider.name)
+                } else {
+                    UserPreferences.setProviderCustomDomain(provider.name, typed)
+                }
+
+                preference.summary =
+                    UserPreferences.providerDomainForDisplay(provider.name, defaultBaseUrl)
+
+                ProviderChangeNotifier.notifyProviderChanged()
+
+                true
+            }
+        }
+
+        findPreference<Preference>("provider_domain_generic_reset")
+            ?.setOnPreferenceClickListener {
+                UserPreferences.resetProviderCustomDomain(provider.name)
+
+                findPreference<EditTextPreference>("provider_domain_generic")?.apply {
+                    text = null
+                    summary = UserPreferences.providerDomainForDisplay(
+                        provider.name,
+                        defaultBaseUrl
+                    )
+                }
+
+                ProviderChangeNotifier.notifyProviderChanged()
+
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.settings_provider_domain_reset_done),
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                true
+            }
+    }
+
     private fun updateProviderVisibilityState() {
         val isStreamingCommunity = UserPreferences.currentProvider is StreamingCommunityProvider
         val isSerienStream = UserPreferences.currentProvider is SerienStreamProvider
@@ -860,9 +936,20 @@ class SettingsMobileFragment : PreferenceFragmentCompat() {
         val isCuevana = UserPreferences.currentProvider?.name == "Cuevana 3"
         val isPoseidon = UserPreferences.currentProvider?.name == "Poseidonhd2"
         val isAnimeOnlineNinja = UserPreferences.currentProvider is AnimeOnlineNinjaProvider
+        val hasGenericDomain =
+            configurableDomainDefault(UserPreferences.currentProvider?.name) != null
         val hasConfigProvider = UserPreferences.currentProvider is ProviderConfigUrl
-        val hasSpecificOptions = isStreamingCommunity || isCuevana || isPoseidon || isAnimeOnlineNinja
+        val hasSpecificOptions =
+            isStreamingCommunity ||
+                isSerienStream ||
+                isMoflix ||
+                isCuevana ||
+                isPoseidon ||
+                isAnimeOnlineNinja ||
+                hasGenericDomain
 
+        findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
+            hasGenericDomain
         findPreference<PreferenceCategory>("pc_streamingcommunity_settings")?.isVisible = isStreamingCommunity
         findPreference<PreferenceCategory>("pc_serienstream_settings")?.isVisible = isSerienStream
         findPreference<PreferenceCategory>("pc_moflix_settings")?.isVisible = isMoflix
