@@ -212,26 +212,6 @@
             android:title="@string/settings_category_provider_title">
 
             <EditTextPreference
-                android:key="provider_kinoger_domain"
-                android:title="@string/settings_provider_kinoger_domain"
-                android:summary="@string/settings_provider_kinoger_domain_summary"
-                android:singleLine="true" />
-
-            <Preference
-                android:key="provider_kinoger_domain_reset"
-                android:title="@string/settings_provider_kinoger_domain_reset" />
-
-            <EditTextPreference
-                android:key="provider_vavoo_domain"
-                android:title="@string/settings_provider_vavoo_domain"
-                android:summary="@string/settings_provider_vavoo_domain_summary"
-                android:singleLine="true" />
-
-            <Preference
-                android:key="provider_vavoo_domain_reset"
-                android:title="@string/settings_provider_vavoo_domain_reset" />
-
-            <EditTextPreference
                 android:key="provider_url"
                 android:title="@string/settings_category_provider_url"
                 android:inputType="textUri" />
@@ -260,6 +240,41 @@
                 android:summaryOn="@string/settings_frenchstream_use_new_interface_on"
                 android:summaryOff="@string/settings_frenchstream_use_new_interface_off" />
         </PreferenceCategory>
+
+        <PreferenceCategory
+            android:key="pc_kinoger_domain_settings"
+            android:title="@string/settings_provider_kinoger_domain">
+
+            <EditTextPreference
+                android:key="provider_kinoger_domain"
+                android:title="@string/settings_provider_kinoger_domain"
+                android:summary="@string/settings_provider_kinoger_domain_summary"
+                android:inputType="textUri"
+                android:singleLine="true" />
+
+            <Preference
+                android:key="provider_kinoger_domain_reset"
+                android:title="@string/settings_provider_kinoger_domain_reset" />
+
+        </PreferenceCategory>
+
+        <PreferenceCategory
+            android:key="pc_vavoo_domain_settings"
+            android:title="@string/settings_provider_vavoo_domain">
+
+            <EditTextPreference
+                android:key="provider_vavoo_domain"
+                android:title="@string/settings_provider_vavoo_domain"
+                android:summary="@string/settings_provider_vavoo_domain_summary"
+                android:inputType="textUri"
+                android:singleLine="true" />
+
+            <Preference
+                android:key="provider_vavoo_domain_reset"
+                android:title="@string/settings_provider_vavoo_domain_reset" />
+
+        </PreferenceCategory>
+
 
         <PreferenceCategory
             android:key="pc_streamingcommunity_settings"

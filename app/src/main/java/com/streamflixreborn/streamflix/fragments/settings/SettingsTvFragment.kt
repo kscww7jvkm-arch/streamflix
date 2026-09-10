@@ -1532,8 +1532,28 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
         val isCuevana = UserPreferences.currentProvider?.name == "Cuevana 3"
         val isPoseidon = UserPreferences.currentProvider?.name == "Poseidonhd2"
         val isAnimeOnlineNinja = UserPreferences.currentProvider is AnimeOnlineNinjaProvider
+
+        val currentProviderName =
+            UserPreferences.currentProvider?.name.orEmpty()
+
+        val isKinoGer =
+            currentProviderName == "KinoGer"
+
+        val isVavooVod =
+            currentProviderName == "Vavoo VOD"
+
+        val isVavooLive =
+            currentProviderName.startsWith("Vavoo ") &&
+                currentProviderName.endsWith(" Live TV")
         val hasConfigProvider = UserPreferences.currentProvider is ProviderConfigUrl
-        val hasSpecificOptions = isStreamingCommunity || isCuevana || isPoseidon || isAnimeOnlineNinja
+        val hasSpecificOptions =
+            isStreamingCommunity ||
+                isCuevana ||
+                isPoseidon ||
+                isAnimeOnlineNinja ||
+                isKinoGer ||
+                isVavooVod ||
+                isVavooLive
 
         findPreference<PreferenceCategory>("pc_streamingcommunity_settings")?.isVisible = isStreamingCommunity
         findPreference<PreferenceCategory>("pc_serienstream_settings")?.isVisible = isSerienStream
@@ -1541,6 +1561,14 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
         findPreference<PreferenceCategory>("pc_cuevana_settings")?.isVisible = isCuevana
         findPreference<PreferenceCategory>("pc_poseidon_settings")?.isVisible = isPoseidon
         findPreference<PreferenceCategory>("pc_animeonlineninja_settings")?.isVisible = isAnimeOnlineNinja
+        findPreference<PreferenceCategory>(
+            "pc_kinoger_domain_settings"
+        )?.isVisible = isKinoGer
+
+        findPreference<PreferenceCategory>(
+            "pc_vavoo_domain_settings"
+        )?.isVisible = isVavooVod || isVavooLive
+
         findPreference<PreferenceCategory>("pc_provider_empty_state")?.isVisible = !hasConfigProvider && !hasSpecificOptions
     }
 
