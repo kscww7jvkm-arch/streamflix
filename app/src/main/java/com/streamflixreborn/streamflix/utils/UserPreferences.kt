@@ -283,6 +283,27 @@ object UserPreferences {
             Key.TMDB_API_KEY.setString(value)
             TMDb3.rebuildService()
         }
+    // Configurable TMDb streaming catalog rows
+    var tmdbCatalogProviders: Set<String>
+        get() = Key.TMDB_CATALOG_PROVIDERS.getStringSet()
+            ?: setOf(
+                "netflix",
+                "prime",
+                "disney",
+                "apple",
+                "max",
+                "hulu",
+            )
+        set(value) =
+            Key.TMDB_CATALOG_PROVIDERS.setStringSet(value)
+
+    var tmdbCatalogModes: Set<String>
+        get() =
+            Key.TMDB_CATALOG_MODES.getStringSet()
+                ?: setOf("popular")
+        set(value) =
+            Key.TMDB_CATALOG_MODES.setStringSet(value)
+
     var enableTmdb: Boolean
         get() = Key.ENABLE_TMDB.getBoolean() ?: true
         set(value) {
@@ -665,6 +686,8 @@ object UserPreferences {
         AUTOPLAY_BUFFER,
         SERVER_AUTO_SUBTITLES_DISABLED,
         ENABLE_TMDB,
+        TMDB_CATALOG_PROVIDERS,
+        TMDB_CATALOG_MODES,
         PARENTAL_CONTROL_PIN,
         PARENTAL_CONTROL_ADMIN_PIN,
         PARENTAL_CONTROL_MAX_AGE,

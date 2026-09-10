@@ -8,6 +8,65 @@
         android:widgetLayout="@layout/preference_widget_chevron">
 
         <PreferenceCategory
+            android:title="@string/settings_tmdb_streaming_catalogs">
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_NETFLIX"
+                android:title="Netflix"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_PRIME"
+                android:title="Prime Video"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_DISNEY"
+                android:title="Disney+"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_APPLE"
+                android:title="Apple TV+"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_MAX"
+                android:title="Max / HBO"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_HULU"
+                android:title="Hulu"
+                android:defaultValue="true" />
+
+        </PreferenceCategory>
+
+        <PreferenceCategory
+            android:title="@string/settings_tmdb_catalog_modes">
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_POPULAR"
+                android:title="@string/settings_tmdb_catalog_popular"
+                android:summary="@string/settings_tmdb_catalog_popular_summary"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_TOP"
+                android:title="@string/settings_tmdb_catalog_top"
+                android:summary="@string/settings_tmdb_catalog_top_summary"
+                android:defaultValue="false" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_NEW"
+                android:title="@string/settings_tmdb_catalog_new"
+                android:summary="@string/settings_tmdb_catalog_new_summary"
+                android:defaultValue="false" />
+
+        </PreferenceCategory>
+
+
+        <PreferenceCategory
             android:key="pc_tmdb_settings"
             android:title="@string/settings_category_tmdb">
 

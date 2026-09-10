@@ -637,7 +637,73 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
             true
         }
 
-        findPreference<EditTextPreference>("provider_url")?.apply {
+
+        val tmdbProviderMap = mapOf(
+            "TMDB_CATALOG_NETFLIX" to "netflix",
+            "TMDB_CATALOG_PRIME" to "prime",
+            "TMDB_CATALOG_DISNEY" to "disney",
+            "TMDB_CATALOG_APPLE" to "apple",
+            "TMDB_CATALOG_MAX" to "max",
+            "TMDB_CATALOG_HULU" to "hulu",
+        )
+
+        tmdbProviderMap.forEach { (prefKey, valueKey) ->
+            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
+                isChecked =
+                    valueKey in UserPreferences.tmdbCatalogProviders
+
+                setOnPreferenceChangeListener { _, newValue ->
+                    val selected =
+                        UserPreferences.tmdbCatalogProviders
+                            .toMutableSet()
+
+                    if (newValue as Boolean) {
+                        selected.add(valueKey)
+                    } else {
+                        selected.remove(valueKey)
+                    }
+
+                    UserPreferences.tmdbCatalogProviders = selected
+                    ProviderChangeNotifier.notifyProviderChanged()
+                    true
+                }
+            }
+        }
+
+        val tmdbModeMap = mapOf(
+            "TMDB_CATALOG_POPULAR" to "popular",
+            "TMDB_CATALOG_TOP" to "top",
+            "TMDB_CATALOG_NEW" to "new",
+        )
+
+        tmdbModeMap.forEach { (prefKey, valueKey) ->
+            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
+                isChecked =
+                    valueKey in UserPreferences.tmdbCatalogModes
+
+                setOnPreferenceChangeListener { _, newValue ->
+                    val selected =
+                        UserPreferences.tmdbCatalogModes
+                            .toMutableSet()
+
+                    if (newValue as Boolean) {
+                        selected.add(valueKey)
+                    } else {
+                        selected.remove(valueKey)
+                    }
+
+                    if (selected.isEmpty()) {
+                        selected.add("popular")
+                    }
+
+                    UserPreferences.tmdbCatalogModes = selected
+                    ProviderChangeNotifier.notifyProviderChanged()
+                    true
+                }
+            }
+        }
+
+findPreference<EditTextPreference>("provider_url")?.apply {
                 isVisible = configProvider != null
                 isEnabled = autoUpdateVal == false
                 if (isVisible && provider != null && configProvider != null) {

@@ -504,4 +504,13 @@
     <string name="settings_provider_kinoger_domain">KinoGer-Domain</string>
     <string name="settings_provider_kinoger_domain_summary">Basisdomain für KinoGer ändern</string>
     <string name="settings_provider_kinoger_domain_reset">KinoGer-Domain zurücksetzen</string>
+
+    <string name="settings_tmdb_streaming_catalogs">TMDb Streaming-Kataloge</string>
+    <string name="settings_tmdb_catalog_modes">Katalog-Reihen</string>
+    <string name="settings_tmdb_catalog_popular">Beliebt</string>
+    <string name="settings_tmdb_catalog_popular_summary">Beliebte Filme und Serien des ausgewählten Anbieters</string>
+    <string name="settings_tmdb_catalog_top">Top bewertet</string>
+    <string name="settings_tmdb_catalog_top_summary">Nach Bewertung sortieren</string>
+    <string name="settings_tmdb_catalog_new">Neueste</string>
+    <string name="settings_tmdb_catalog_new_summary">Neueste Inhalte zuerst</string>
 </resources>
