@@ -38,6 +38,7 @@ object UserPreferences {
     const val PROVIDER_AUTOUPDATE = "AUTOUPDATE_URL"
     const val PROVIDER_NEW_INTERFACE = "NEW_INTERFACE"
     const val PROVIDER_PREFERRED_SERVER = "PREFERRED_SERVER"
+    const val PROVIDER_CUSTOM_DOMAIN = "CUSTOM_DOMAIN"
 
     private const val DEFAULT_VAVOO_DOMAIN = "https://vavoo.to"
     private const val DEFAULT_KINOGER_DOMAIN = "https://kinoger.fun"
@@ -271,6 +272,83 @@ object UserPreferences {
             providerCache.remove(providerName)
             Key.PROVIDER_CACHE.setString(providerCache.toString())
         }
+    }
+
+    private fun getProviderCache(providerName: String, key: String): String {
+        return providerCache
+            .optJSONObject(providerName)
+            ?.optString(key)
+            .orEmpty()
+    }
+
+    private fun setProviderCache(providerName: String, key: String, value: String) {
+        val innerJson = providerCache.optJSONObject(providerName)
+            ?: JSONObject().also { providerCache.put(providerName, it) }
+
+        innerJson.put(key, value)
+        Key.PROVIDER_CACHE.setString(providerCache.toString())
+    }
+
+    fun getProviderCustomDomain(providerName: String): String =
+        getProviderCache(providerName, PROVIDER_CUSTOM_DOMAIN)
+
+    fun setProviderCustomDomain(providerName: String, value: String) {
+        setProviderCache(
+            providerName,
+            PROVIDER_CUSTOM_DOMAIN,
+            normalizeProviderDomain(value)
+        )
+    }
+
+    fun resetProviderCustomDomain(providerName: String) {
+        setProviderCache(providerName, PROVIDER_CUSTOM_DOMAIN, "")
+    }
+
+    fun resolveProviderBaseUrl(
+        providerName: String,
+        defaultBaseUrl: String
+    ): String {
+        val customDomain = getProviderCustomDomain(providerName)
+        if (customDomain.isBlank()) return defaultBaseUrl
+
+        return runCatching {
+            val uri = android.net.Uri.parse(defaultBaseUrl)
+            uri.buildUpon()
+                .authority(customDomain)
+                .build()
+                .toString()
+        }.getOrDefault(defaultBaseUrl)
+    }
+
+    fun providerDomainForDisplay(
+        providerName: String,
+        defaultBaseUrl: String
+    ): String {
+        val customDomain = getProviderCustomDomain(providerName)
+        if (customDomain.isNotBlank()) return customDomain
+
+        return runCatching {
+            android.net.Uri.parse(defaultBaseUrl).authority.orEmpty()
+        }.getOrDefault(defaultBaseUrl)
+    }
+
+    private fun normalizeProviderDomain(value: String): String {
+        val trimmed = value.trim().trimEnd('/')
+        if (trimmed.isBlank()) return ""
+
+        val withScheme =
+            if (trimmed.contains("://")) trimmed
+            else "https://$trimmed"
+
+        return runCatching {
+            android.net.Uri.parse(withScheme).authority.orEmpty()
+        }.getOrDefault(trimmed)
+            .ifBlank {
+                trimmed
+                    .removePrefix("https://")
+                    .removePrefix("http://")
+                    .substringBefore('/')
+            }
     }
 
     var currentLanguage: String?
