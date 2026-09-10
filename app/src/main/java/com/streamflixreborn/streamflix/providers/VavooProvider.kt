@@ -3,6 +3,7 @@ package com.streamflixreborn.streamflix.providers
 import android.util.Log
 import com.streamflixreborn.streamflix.adapters.AppAdapter
 import com.streamflixreborn.streamflix.models.*
+import com.streamflixreborn.streamflix.utils.UserPreferences
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -31,10 +32,14 @@ class VavooProvider(override val language: String) : IptvProvider {
             .build()
     }
 
-    override val baseUrl: String = "https://vavoo.to"
+    override val baseUrl: String
+        get() = UserPreferences.vavooDomain
 
-    private val CATALOG_URL = "$baseUrl/mediahubmx-catalog.json"
-    private val RESOLVE_URL = "$baseUrl/mediahubmx-resolve.json"
+    private val CATALOG_URL: String
+        get() = "$baseUrl/mediahubmx-catalog.json"
+
+    private val RESOLVE_URL: String
+        get() = "$baseUrl/mediahubmx-resolve.json"
 
     // Cache for home categories per language to avoid instant re-fetching
     private val homeCache = mutableMapOf<String, List<VavooChannel>>()
@@ -53,7 +58,8 @@ class VavooProvider(override val language: String) : IptvProvider {
     private val config = LANG_CONFIG[language] ?: LANG_CONFIG["de"]!!
 
     override val name: String = "Vavoo ${config.third.first()} Live TV"
-    override val logo: String = "$baseUrl/assets/favicon-Djqjt9PL.ico"
+    override val logo: String
+        get() = "$baseUrl/assets/favicon-Djqjt9PL.ico"
 
     private val primaryGroups: List<String> = config.third
 

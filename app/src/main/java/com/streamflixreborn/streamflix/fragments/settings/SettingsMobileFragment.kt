@@ -444,12 +444,12 @@ class SettingsMobileFragment : PreferenceFragmentCompat() {
             val spannableTitle = SpannableString(titleStr)
             spannableTitle.setSpan(ForegroundColorSpan(palette.tvHeaderPrimary), 0, titleStr.length, 0)
             title = spannableTitle
-            
+
             val summaryStr = BuildConfig.VERSION_NAME
             val spannableSummary = SpannableString(summaryStr)
             spannableSummary.setSpan(ForegroundColorSpan(palette.tvHeaderSecondary), 0, summaryStr.length, 0)
             summary = spannableSummary
-            
+
             isSelectable = false
             setOnPreferenceClickListener(null)
         }
@@ -565,7 +565,59 @@ class SettingsMobileFragment : PreferenceFragmentCompat() {
                 }
             }
 
-            findPreference<EditTextPreference>("provider_url")?.apply {
+
+        findPreference<EditTextPreference>("provider_kinoger_domain")?.apply {
+            text = UserPreferences.kinogerDomain
+            summary = UserPreferences.kinogerDomain
+
+            setOnPreferenceChangeListener { _, newValue ->
+                UserPreferences.kinogerDomain =
+                    newValue?.toString().orEmpty()
+
+                text = UserPreferences.kinogerDomain
+                summary = UserPreferences.kinogerDomain
+                true
+            }
+        }
+
+        findPreference<Preference>("provider_kinoger_domain_reset")
+            ?.setOnPreferenceClickListener {
+                UserPreferences.resetKinogerDomain()
+
+                findPreference<EditTextPreference>("provider_kinoger_domain")
+                    ?.apply {
+                        text = UserPreferences.kinogerDomain
+                        summary = UserPreferences.kinogerDomain
+                    }
+
+                true
+            }
+
+        findPreference<EditTextPreference>("provider_vavoo_domain")?.apply {
+            text = UserPreferences.vavooDomain
+            summary = UserPreferences.vavooDomain
+
+            setOnPreferenceChangeListener { _, newValue ->
+                val value = newValue?.toString().orEmpty()
+                UserPreferences.vavooDomain = value
+                text = UserPreferences.vavooDomain
+                summary = UserPreferences.vavooDomain
+                true
+            }
+        }
+
+        findPreference<Preference>("provider_vavoo_domain_reset")?.setOnPreferenceClickListener {
+            UserPreferences.resetVavooDomain()
+
+            findPreference<EditTextPreference>("provider_vavoo_domain")?.apply {
+                text = UserPreferences.vavooDomain
+                summary = UserPreferences.vavooDomain
+            }
+
+            true
+        }
+
+        findPreference<EditTextPreference>("provider_url")?.apply {
                 isVisible = configProvider != null
                 isEnabled = autoUpdateVal == false
                 if (isVisible && provider != null && configProvider != null) {

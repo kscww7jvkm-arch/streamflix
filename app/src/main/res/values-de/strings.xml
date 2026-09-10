@@ -496,4 +496,12 @@
     <string name="settings_refresh_cache_success">Cache erfolgreich aktualisiert</string>
     <string name="supabase_instructions_title">Anleitung</string>
     <string name="supabase_instructions_summary">Die ausführliche Anleitung zur Einrichtung von Supabase-Konto und Synchronisierung im Browser öffnen</string>
+
+    <string name="settings_provider_vavoo_domain">Vavoo-Domain</string>
+    <string name="settings_provider_vavoo_domain_summary">Basisdomain für Vavoo-Katalog und Wiedergabe ändern</string>
+    <string name="settings_provider_vavoo_domain_reset">Vavoo-Domain zurücksetzen</string>
+
+    <string name="settings_provider_kinoger_domain">KinoGer-Domain</string>
+    <string name="settings_provider_kinoger_domain_summary">Basisdomain für KinoGer ändern</string>
+    <string name="settings_provider_kinoger_domain_reset">KinoGer-Domain zurücksetzen</string>
 </resources>

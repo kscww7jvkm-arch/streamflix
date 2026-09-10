@@ -592,4 +592,12 @@
     <string name="settings_parental_tmdb_disable_blocked">You must unlock parental controls before disabling TMDb.</string>
     <string name="settings_force_extra_buffer_title">Global Extra Buffering</string>
     <string name="settings_force_extra_buffer_summary">Enable extra buffering for all servers by default</string>
+
+    <string name="settings_provider_vavoo_domain">Vavoo domain</string>
+    <string name="settings_provider_vavoo_domain_summary">Override the Vavoo base domain used for catalog and playback</string>
+    <string name="settings_provider_vavoo_domain_reset">Reset Vavoo domain</string>
+
+    <string name="settings_provider_kinoger_domain">KinoGer domain</string>
+    <string name="settings_provider_kinoger_domain_summary">Override the KinoGer base domain</string>
+    <string name="settings_provider_kinoger_domain_reset">Reset KinoGer domain</string>
 </resources>

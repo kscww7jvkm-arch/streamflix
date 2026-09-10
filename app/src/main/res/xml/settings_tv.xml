@@ -212,6 +212,26 @@
             android:title="@string/settings_category_provider_title">
 
             <EditTextPreference
+                android:key="provider_kinoger_domain"
+                android:title="@string/settings_provider_kinoger_domain"
+                android:summary="@string/settings_provider_kinoger_domain_summary"
+                android:singleLine="true" />
+
+            <Preference
+                android:key="provider_kinoger_domain_reset"
+                android:title="@string/settings_provider_kinoger_domain_reset" />
+
+            <EditTextPreference
+                android:key="provider_vavoo_domain"
+                android:title="@string/settings_provider_vavoo_domain"
+                android:summary="@string/settings_provider_vavoo_domain_summary"
+                android:singleLine="true" />
+
+            <Preference
+                android:key="provider_vavoo_domain_reset"
+                android:title="@string/settings_provider_vavoo_domain_reset" />
+
+            <EditTextPreference
                 android:key="provider_url"
                 android:title="@string/settings_category_provider_url"
                 android:inputType="textUri" />

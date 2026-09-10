@@ -39,6 +39,115 @@ object UserPreferences {
     const val PROVIDER_NEW_INTERFACE = "NEW_INTERFACE"
     const val PROVIDER_PREFERRED_SERVER = "PREFERRED_SERVER"
 
+    private const val DEFAULT_VAVOO_DOMAIN = "https://vavoo.to"
+    private const val DEFAULT_KINOGER_DOMAIN = "https://kinoger.fun"
+    private const val KINOGER_CACHE_NAME = "__KINOGER_GLOBAL__"
+    private const val VAVOO_CACHE_NAME = "__VAVOO_GLOBAL__"
+
+    var vavooDomain: String
+        get() {
+            val stored = providerCache
+                .optJSONObject(VAVOO_CACHE_NAME)
+                ?.optString(PROVIDER_URL)
+                .orEmpty()
+                .trim()
+
+            return normalizeVavooDomain(
+                stored.ifBlank { DEFAULT_VAVOO_DOMAIN }
+            )
+        }
+        set(value) {
+            val normalized = normalizeVavooDomain(value)
+                .ifBlank { DEFAULT_VAVOO_DOMAIN }
+
+            val innerJson = providerCache.optJSONObject(VAVOO_CACHE_NAME)
+                ?: JSONObject().also {
+                    providerCache.put(VAVOO_CACHE_NAME, it)
+                }
+
+            innerJson.put(PROVIDER_URL, normalized)
+            Key.PROVIDER_CACHE.setString(providerCache.toString())
+        }
+
+    fun resetVavooDomain() {
+        val innerJson = providerCache.optJSONObject(VAVOO_CACHE_NAME)
+        if (innerJson != null) {
+            innerJson.remove(PROVIDER_URL)
+            if (innerJson.length() == 0) {
+                providerCache.remove(VAVOO_CACHE_NAME)
+            }
+            Key.PROVIDER_CACHE.setString(providerCache.toString())
+        }
+    }
+
+    var kinogerDomain: String
+        get() {
+            val stored = providerCache
+                .optJSONObject(KINOGER_CACHE_NAME)
+                ?.optString(PROVIDER_URL)
+                .orEmpty()
+                .trim()
+
+            return normalizeKinogerDomain(
+                stored.ifBlank { DEFAULT_KINOGER_DOMAIN }
+            )
+        }
+        set(value) {
+            val normalized = normalizeKinogerDomain(value)
+                .ifBlank { DEFAULT_KINOGER_DOMAIN }
+
+            val innerJson = providerCache.optJSONObject(KINOGER_CACHE_NAME)
+                ?: JSONObject().also {
+                    providerCache.put(KINOGER_CACHE_NAME, it)
+                }
+
+            innerJson.put(PROVIDER_URL, normalized)
+            Key.PROVIDER_CACHE.setString(providerCache.toString())
+        }
+
+    fun resetKinogerDomain() {
+        val innerJson = providerCache.optJSONObject(KINOGER_CACHE_NAME)
+        if (innerJson != null) {
+            innerJson.remove(PROVIDER_URL)
+            if (innerJson.length() == 0) {
+                providerCache.remove(KINOGER_CACHE_NAME)
+            }
+            Key.PROVIDER_CACHE.setString(providerCache.toString())
+        }
+    }
+
+    private fun normalizeKinogerDomain(value: String): String {
+        var result = value.trim()
+
+        if (result.isBlank()) {
+            return DEFAULT_KINOGER_DOMAIN
+        }
+
+        if (!result.startsWith("http://") &&
+            !result.startsWith("https://")
+        ) {
+            result = "https://$result"
+        }
+
+        return result.trimEnd('/')
+    }
+
+    private fun normalizeVavooDomain(value: String): String {
+        var result = value.trim()
+
+        if (result.isBlank()) {
+            return DEFAULT_VAVOO_DOMAIN
+        }
+
+        if (!result.startsWith("http://") &&
+            !result.startsWith("https://")
+        ) {
+            result = "https://$result"
+        }
+
+        return result.trimEnd('/')
+    }
+
     lateinit var providerCache: JSONObject
 
     private inline fun debugLog(message: () -> String) {
