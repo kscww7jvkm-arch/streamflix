@@ -918,10 +918,31 @@ class PlayerMobileFragment : Fragment() {
         val extraBuffering = PlayerSettingsView.Settings.ExtraBuffering.isEnabled
 
         val softwareDecoder = PlayerSettingsView.Settings.SoftwareDecoder.isEnabled
+
+        val vavooTlsHost =
+            if (
+                UserPreferences.currentProvider
+                    ?.javaClass
+                    ?.simpleName == "VavooProvider"
+            ) {
+                runCatching {
+                    java.net.URI(video.source).host
+                }.getOrNull()
+            } else {
+                null
+            }
+
         val needsReinit =
-            extraBuffering != currentExtraBuffering || softwareDecoder != currentSoftwareDecoder
+            extraBuffering != currentExtraBuffering ||
+                softwareDecoder != currentSoftwareDecoder ||
+                vavooTlsHost != currentVavooTlsHost
+
         if (needsReinit) {
-            initializePlayer(extraBuffering, softwareDecoder)
+            initializePlayer(
+                extraBuffering,
+                softwareDecoder,
+                vavooTlsHost
+            )
             player.playlistMetadata = MediaMetadata.Builder()
                 .setTitle(resolvePlayerTitle())
                 .setMediaServers(servers.map {
@@ -1465,6 +1486,7 @@ class PlayerMobileFragment : Fragment() {
 
     private var currentExtraBuffering = false
     private var currentSoftwareDecoder = false
+    private var currentVavooTlsHost: String? = null
 
     private fun buildPlayer(extraBuffering: Boolean): ExoPlayer {
         val loadControl = DefaultLoadControl.Builder()
@@ -1494,13 +1516,34 @@ class PlayerMobileFragment : Fragment() {
             .build()
     }
 
-    private fun initializePlayer(extraBuffering: Boolean, softwareDecoder: Boolean = currentSoftwareDecoder) {
+    private fun initializePlayer(
+        extraBuffering: Boolean,
+        softwareDecoder: Boolean = currentSoftwareDecoder,
+        vavooTlsHost: String? = currentVavooTlsHost
+    ) {
         releasePlayer()
         currentExtraBuffering = extraBuffering
         currentSoftwareDecoder = softwareDecoder
+        currentVavooTlsHost = vavooTlsHost
 
         var tokenLogged = false
-        val okHttpClient = NetworkClient.default.newBuilder()
+        val okHttpBuilder =
+            NetworkClient.default.newBuilder()
+
+        if (!vavooTlsHost.isNullOrBlank()) {
+            com.streamflixreborn.streamflix.utils.VavooTls
+                .relaxForHost(
+                    okHttpBuilder,
+                    vavooTlsHost
+                )
+
+            android.util.Log.d(
+                "VavooTLS",
+                "Relaxed TLS enabled only for host: $vavooTlsHost"
+            )
+        }
+
+        val okHttpClient = okHttpBuilder
             .addInterceptor { chain ->
                 var request = chain.request()
                 

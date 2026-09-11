@@ -130,7 +130,8 @@ interface Provider {
             VavooProvider("it") to ProviderSupport(movies = false, tvShows = true),
             VavooProvider("fr") to ProviderSupport(movies = false, tvShows = true),
             VavooProvider("es") to ProviderSupport(movies = false, tvShows = true),
-            VavooProvider("pl") to ProviderSupport(movies = false, tvShows = true)
+            VavooProvider("pl") to ProviderSupport(movies = false, tvShows = true),
+            VavooProvider("en") to ProviderSupport(movies = false, tvShows = true)
         )
 
         // Helper functions to check support
