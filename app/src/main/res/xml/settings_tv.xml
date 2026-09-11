@@ -370,6 +370,33 @@
                 android:key="provider_vavoo_domain_reset"
                 android:title="@string/settings_provider_vavoo_domain_reset" />
 
+            <Preference
+                android:key="provider_vavoo_domain_check"
+                android:title="@string/settings_provider_domain_check"
+                android:summary="@string/settings_provider_domain_check_summary" />
+
+        </PreferenceCategory>
+
+        <PreferenceCategory
+            android:key="pc_kellerkino_domain_settings"
+            android:title="@string/settings_provider_kellerkino_domain">
+
+            <EditTextPreference
+                android:key="provider_kellerkino_domain"
+                android:title="@string/settings_provider_kellerkino_domain"
+                android:summary="@string/settings_provider_kellerkino_domain_summary"
+                android:inputType="textUri"
+                android:singleLine="true" />
+
+            <Preference
+                android:key="provider_kellerkino_domain_reset"
+                android:title="@string/settings_provider_kellerkino_domain_reset" />
+
+            <Preference
+                android:key="provider_kellerkino_domain_check"
+                android:title="@string/settings_provider_domain_check"
+                android:summary="@string/settings_provider_domain_check_summary" />
+
         </PreferenceCategory>
 
 

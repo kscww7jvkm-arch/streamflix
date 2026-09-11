@@ -620,4 +620,9 @@
     <string name="settings_provider_domain_check_current">Domain is already current</string>
     <string name="settings_provider_domain_check_updated">New domain saved: %1$s</string>
     <string name="settings_provider_domain_check_failed">Domain check failed: %1$s</string>
+
+    <string name="settings_provider_kellerkino_domain">KellerKino domain</string>
+    <string name="settings_provider_kellerkino_domain_summary">Override the KellerKino base domain</string>
+    <string name="settings_provider_kellerkino_domain_reset">Reset KellerKino domain</string>
+
 </resources>

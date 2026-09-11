@@ -524,4 +524,9 @@
     <string name="settings_provider_domain_check_current">Domain ist bereits aktuell</string>
     <string name="settings_provider_domain_check_updated">Neue Domain übernommen: %1$s</string>
     <string name="settings_provider_domain_check_failed">Domain-Prüfung fehlgeschlagen: %1$s</string>
+
+    <string name="settings_provider_kellerkino_domain">KellerKino-Domain</string>
+    <string name="settings_provider_kellerkino_domain_summary">Basisdomain für KellerKino ändern</string>
+    <string name="settings_provider_kellerkino_domain_reset">KellerKino-Domain zurücksetzen</string>
+
 </resources>

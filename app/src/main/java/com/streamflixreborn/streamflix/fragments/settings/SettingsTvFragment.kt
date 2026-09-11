@@ -641,6 +641,34 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
         }
 
 
+        findPreference<EditTextPreference>("provider_kellerkino_domain")?.apply {
+            text = UserPreferences.kellerkinoDomain
+            summary = UserPreferences.kellerkinoDomain
+
+            setOnPreferenceChangeListener { _, newValue ->
+                val value = newValue?.toString().orEmpty()
+                UserPreferences.kellerkinoDomain = value
+                text = UserPreferences.kellerkinoDomain
+                summary = UserPreferences.kellerkinoDomain
+                true
+            }
+        }
+
+        findPreference<Preference>("provider_kellerkino_domain_reset")
+            ?.setOnPreferenceClickListener {
+                UserPreferences.resetKellerkinoDomain()
+
+                findPreference<EditTextPreference>(
+                    "provider_kellerkino_domain"
+                )?.apply {
+                    text = UserPreferences.kellerkinoDomain
+                    summary = UserPreferences.kellerkinoDomain
+                }
+
+                true
+            }
+
+
         val tmdbProviderMap = mapOf(
             "TMDB_CATALOG_NETFLIX" to "netflix",
             "TMDB_CATALOG_PRIME" to "prime",
@@ -1689,6 +1717,12 @@ findPreference<EditTextPreference>("provider_url")?.apply {
             currentProviderName.startsWith("Vavoo ") &&
                 currentProviderName.endsWith(" Live TV")
 
+        val isKellerKino =
+            currentProviderName.equals(
+                "Kellerkino",
+                ignoreCase = true
+            )
+
         val hasGenericDomain =
             configurableDomainDefault(UserPreferences.currentProvider?.name) != null
 
@@ -1705,6 +1739,7 @@ findPreference<EditTextPreference>("provider_url")?.apply {
                 isKinoGer ||
                 isVavooVod ||
                 isVavooLive ||
+                isKellerKino ||
                 hasGenericDomain
 
 findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
@@ -1722,6 +1757,10 @@ findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVis
         findPreference<PreferenceCategory>(
             "pc_vavoo_domain_settings"
         )?.isVisible = isVavooVod || isVavooLive
+
+        findPreference<PreferenceCategory>(
+            "pc_kellerkino_domain_settings"
+        )?.isVisible = isKellerKino
 
         findPreference<PreferenceCategory>("pc_provider_empty_state")?.isVisible = !hasConfigProvider && !hasSpecificOptions
     }
@@ -1870,6 +1909,56 @@ findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVis
                     )?.apply {
                         text = UserPreferences.kinogerDomain
                         summary = UserPreferences.kinogerDomain
+                    }
+                }
+            )
+
+            true
+        }
+
+        // Vavoo
+        findPreference<Preference>(
+            "provider_vavoo_domain_check"
+        )?.setOnPreferenceClickListener {
+
+            checkAndUpdate(
+                currentValue = {
+                    UserPreferences.vavooDomain
+                },
+                saveValue = { newDomain ->
+                    UserPreferences.vavooDomain = newDomain
+                },
+                afterSave = {
+                    findPreference<EditTextPreference>(
+                        "provider_vavoo_domain"
+                    )?.apply {
+                        text = UserPreferences.vavooDomain
+                        summary = UserPreferences.vavooDomain
+                    }
+                }
+            )
+
+            true
+        }
+
+        // KellerKino
+        findPreference<Preference>(
+            "provider_kellerkino_domain_check"
+        )?.setOnPreferenceClickListener {
+
+            checkAndUpdate(
+                currentValue = {
+                    UserPreferences.kellerkinoDomain
+                },
+                saveValue = { newDomain ->
+                    UserPreferences.kellerkinoDomain = newDomain
+                },
+                afterSave = {
+                    findPreference<EditTextPreference>(
+                        "provider_kellerkino_domain"
+                    )?.apply {
+                        text = UserPreferences.kellerkinoDomain
+                        summary = UserPreferences.kellerkinoDomain
                     }
                 }
             )
