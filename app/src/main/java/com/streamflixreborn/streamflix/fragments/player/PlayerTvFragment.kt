@@ -847,7 +847,9 @@ class PlayerTvFragment : Fragment() {
             }
 
             binding.btnSkipIntro.setOnClickListener {
-                val range = introRange ?: return@setOnClickListener
+                val range = introRange?.takeIf {
+                    it.isAvailable(player.currentPosition, player.duration)
+                } ?: return@setOnClickListener
                 skipIntroSeekPending = true
                 it.isGone = true
                 player.seekTo(range.seekDestinationMs)
@@ -1234,7 +1236,9 @@ class PlayerTvFragment : Fragment() {
                     if (isPlaying) {
                         recordRecentlyWatchedStart()
                     }
-                    startProgressHandler()
+                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        startProgressHandler()
+                    }
                     val hasUri = player.currentMediaItem?.localConfiguration?.uri
                         ?.toString()?.isNotEmpty()
                         ?: false
@@ -1585,6 +1589,7 @@ class PlayerTvFragment : Fragment() {
         }
 
         private fun showNextEpisodeOverlay(nextEpisode: Video.Type.Episode, remainingMs: Long) {
+            showSkipIntroButton(false)
             updateNextEpisodeOverlayFocusBindings(true)
             binding.tvNextEpisodeMeta.text = getString(
                 R.string.tv_show_item_season_number_episode_number,
@@ -1688,12 +1693,15 @@ class PlayerTvFragment : Fragment() {
             val range = introRange
             val position = player.currentPosition
             if (range == null || position >= range.endMs) skipIntroSeekPending = false
-            showSkipIntroButton(range?.contains(position) == true && !skipIntroSeekPending)
+            showSkipIntroButton(
+                range?.isAvailable(position, player.duration) == true && !skipIntroSeekPending
+            )
         }
 
         private fun showSkipIntroButton(show: Boolean) {
             val btnSkipIntro = binding.btnSkipIntro
-            if (show && btnSkipIntro.isGone) {
+            val shouldShow = show && binding.layoutNextEpisodeOverlay.isGone
+            if (shouldShow && btnSkipIntro.isGone) {
                 val fadeIn = android.view.animation.AnimationUtils.loadAnimation(
                     requireContext(),
                     R.anim.fade_in
@@ -1707,7 +1715,7 @@ class PlayerTvFragment : Fragment() {
                     settings.nextFocusUpId = btnSkipIntro.id
                     btnSkipIntro.nextFocusUpId = settings.id
                 }
-            } else if (!show && btnSkipIntro.isVisible) {
+            } else if (!shouldShow && btnSkipIntro.isVisible) {
                 if (btnSkipIntro.hasFocus()) binding.pvPlayer.requestFocus()
                 binding.pvPlayer.controller.binding.exoSettings.nextFocusUpId = View.NO_ID
                 val fadeOut = android.view.animation.AnimationUtils.loadAnimation(

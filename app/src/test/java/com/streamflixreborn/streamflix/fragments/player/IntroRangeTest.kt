@@ -15,6 +15,14 @@ class IntroRangeTest {
     @Test fun `position exactly at intro end is hidden`() = assertFalse(range.contains(88_000L))
     @Test fun `position after intro end is hidden`() = assertFalse(range.contains(100_000L))
 
+    @Test fun `intro is unavailable when episode ends before intro end`() {
+        assertFalse(range.isAvailable(positionMs = 45_000L, durationMs = 60_000L))
+    }
+
+    @Test fun `intro is available when episode can reach intro end`() {
+        assertTrue(range.isAvailable(positionMs = 45_000L, durationMs = 88_000L))
+    }
+
     @Test fun `seek destination is the absolute intro end`() {
         val currentPosition = 40_000L
         assertEquals(88_000L, range.seekDestinationMs)

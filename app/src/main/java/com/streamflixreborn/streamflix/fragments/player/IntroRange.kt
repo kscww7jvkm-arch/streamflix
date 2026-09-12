@@ -12,6 +12,9 @@ data class IntroRange(
 
     fun contains(positionMs: Long): Boolean = positionMs >= startMs && positionMs < endMs
 
+    fun isAvailable(positionMs: Long, durationMs: Long): Boolean =
+        durationMs >= endMs && contains(positionMs)
+
     /** The absolute seek target; this deliberately does not depend on playback position. */
     val seekDestinationMs: Long get() = endMs
 

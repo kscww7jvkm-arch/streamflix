@@ -735,7 +735,9 @@ class PlayerMobileFragment : Fragment() {
         }
 
         binding.btnSkipIntro.setOnClickListener {
-            val range = introRange ?: return@setOnClickListener
+            val range = introRange?.takeIf {
+                it.isAvailable(player.currentPosition, player.duration)
+            } ?: return@setOnClickListener
             skipIntroSeekPending = true
             it.isGone = true
             player.seekTo(range.seekDestinationMs)
@@ -1060,7 +1062,9 @@ class PlayerMobileFragment : Fragment() {
                 if (isPlaying) {
                     recordRecentlyWatchedStart()
                 }
-                startProgressHandler()
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    startProgressHandler()
+                }
 
                 val hasUri = player.currentMediaItem?.localConfiguration?.uri
                     ?.toString()?.isNotEmpty()
@@ -1470,7 +1474,9 @@ class PlayerMobileFragment : Fragment() {
         val range = introRange
         val position = player.currentPosition
         if (range == null || position >= range.endMs) skipIntroSeekPending = false
-        showSkipIntroButton(range?.contains(position) == true && !skipIntroSeekPending)
+        showSkipIntroButton(
+            range?.isAvailable(position, player.duration) == true && !skipIntroSeekPending
+        )
     }
 
     private fun showSkipIntroButton(show: Boolean) {
