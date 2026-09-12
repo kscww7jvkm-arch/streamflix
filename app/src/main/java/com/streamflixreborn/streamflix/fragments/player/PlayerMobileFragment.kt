@@ -1415,6 +1415,10 @@ class PlayerMobileFragment : Fragment() {
     }
 
     private fun showNextEpisodeOverlay(nextEpisode: Video.Type.Episode, remainingMs: Long) {
+        // Both standalone overlays share the bottom-end region. The next-episode card takes
+        // precedence while its own display condition is active; Skip Intro is reevaluated by
+        // the progress updater as soon as this card is hidden.
+        showSkipIntroButton(false)
         binding.tvNextEpisodeMeta.text = getString(
             R.string.tv_show_item_season_number_episode_number,
             nextEpisode.season.number,
@@ -1471,11 +1475,12 @@ class PlayerMobileFragment : Fragment() {
 
     private fun showSkipIntroButton(show: Boolean) {
         val btnSkipIntro = binding.btnSkipIntro
-        if (show && btnSkipIntro.isGone) {
+        val shouldShow = show && binding.layoutNextEpisodeOverlay.isGone
+        if (shouldShow && btnSkipIntro.isGone) {
             val fadeIn = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
             btnSkipIntro.startAnimation(fadeIn)
             btnSkipIntro.isVisible = true
-        } else if (!show && btnSkipIntro.isVisible) {
+        } else if (!shouldShow && btnSkipIntro.isVisible) {
             val fadeOut = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
             btnSkipIntro.startAnimation(fadeOut)
             btnSkipIntro.isGone = true
