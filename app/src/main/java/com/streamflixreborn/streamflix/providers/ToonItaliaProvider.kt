@@ -44,15 +44,17 @@ import java.util.concurrent.TimeUnit
  *   `Link Streaming` with a VOE-labeled chuckle-tube link and a VIDHIDE
  *   dhtpre.com file link.
  *
- * Known limitations (not invented, observed):
- * - `chuckle-tube.com` has no matching [Extractor] (see Extractor.kt list),
- *   so those servers are exposed but `getVideo` throws for them; episodes
- *   that also carry a PLAYER1 (uqload/uprot/vidhide) remain playable.
+ * Playback notes:
+ * - `chuckle-tube.com` redirects to `johnfullwonder.com`; both are VOE
+ *   aliases handled by VoeExtractor.
+ * - ToonItalia animation films commonly expose PLAYER1 via `uqload.vc`
+ *   and PLAYER2 via `chuckle-tube.com`; PLAYER2 is the reliable VOE path.
  * - uprot.net msf links resolve to Maxstream via CB01-style UPROT API
  *   keys (see CB01Provider.callUprotApi + Keys); without keys the raw URL is
  *   exposed and generic extraction fails, same as CB01 without secrets.
- * - `dhtpre.com` works via VidHideExtractor; `uqload.vc` matches
- *   UqloadExtractor via its TLD-insensitive fallback (mainUrl `uqload.cx`).
+ * - `dhtpre.com` works via VidHideExtractor.
+ * - `uqload.vc` is still recognized by UqloadExtractor, but its current
+ *   embed flow is not reliably supported; PLAYER2 uses the working VOE path.
  */
 object ToonItaliaProvider : Provider {
 
