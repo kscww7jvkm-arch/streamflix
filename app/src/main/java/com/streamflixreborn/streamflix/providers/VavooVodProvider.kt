@@ -30,10 +30,24 @@ object VavooConfig {
         UserPreferences.vavooDomain.trimEnd('/') + "/"
 }
 
-object VavooVodProvider : Provider {
+class VavooVodProvider private constructor(
+    override val language: String,
+    private val region: String,
+    override val name: String,
+) : Provider {
+
+    companion object {
+        val DE = VavooVodProvider("de", "DE", "Vavoo VOD")
+        val IT = VavooVodProvider("it", "IT", "Vavoo VOD IT")
+        val FR = VavooVodProvider("fr", "FR", "Vavoo VOD FR")
+        val ES = VavooVodProvider("es", "ES", "Vavoo VOD ES")
+        val PL = VavooVodProvider("pl", "PL", "Vavoo VOD PL")
+        val EN = VavooVodProvider("en", "GB", "Vavoo VOD EN")
+    }
+
     // VAVOO_VOD_MEDIAHUB_SOURCE_SCHEMA_V6
-    private const val TAG = "VavooVodProvider"
-    private val tmdb = TmdbProvider("de")
+    private val TAG = "VavooVodProvider-$language"
+    private val tmdb = TmdbProvider(language)
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(8, TimeUnit.SECONDS)
@@ -42,8 +56,6 @@ object VavooVodProvider : Provider {
         .callTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    override val language = "de"
-    override val name = "Vavoo VOD"
     override val baseUrl: String get() = VavooConfig.baseUrl()
     override val logo: String get() = "${baseUrl}assets/favicon-Djqjt9PL.ico"
 
@@ -120,8 +132,8 @@ object VavooVodProvider : Provider {
      */
     private fun buildSourcePayload(videoType: Video.Type): JSONObject =
         JSONObject().apply {
-            put("language", "de")
-            put("region", "DE")
+            put("language", language)
+            put("region", region)
             put("clientVersion", "3.0.2")
 
             when (videoType) {
@@ -203,7 +215,7 @@ object VavooVodProvider : Provider {
                 )
                 .header("User-Agent", "MediaHubMX/2")
                 .header("Accept", "application/json")
-                .header("Accept-Language", "de")
+                .header("Accept-Language", language)
                 .header("Origin", baseUrl.trimEnd('/'))
                 .header("Referer", referer)
                 .build()

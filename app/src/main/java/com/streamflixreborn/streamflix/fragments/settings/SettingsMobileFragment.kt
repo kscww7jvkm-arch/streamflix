@@ -1091,7 +1091,8 @@ findPreference<EditTextPreference>("provider_url")?.apply {
             currentProviderName == "KinoGer"
 
         val isVavooVod =
-            currentProviderName == "Vavoo VOD"
+            currentProviderName == "Vavoo VOD" ||
+                currentProviderName.startsWith("Vavoo VOD ")
 
         val isVavooLive =
             currentProviderName.startsWith("Vavoo ") &&
