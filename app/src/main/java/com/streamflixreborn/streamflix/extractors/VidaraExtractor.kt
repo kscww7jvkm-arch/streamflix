@@ -16,7 +16,17 @@ class VidaraExtractor : Extractor() {
 
     override val name = "Vidara"
     override val mainUrl = "https://vidara.to"
-    override val aliasUrls = listOf("https://vidara.so")
+    override val aliasUrls = listOf(
+        "https://vidara.so",
+        "https://vidaraa.cc",
+    )
+
+    override val rotatingDomain = listOf(
+        Regex(
+            """^vidaraa?\.[a-z0-9.-]+(?:/|$)""",
+            RegexOption.IGNORE_CASE
+        )
+    )
 
     override suspend fun extract(link: String): Video {
         val fileCode = URL(link).path.split("/").last { it.isNotEmpty() }
@@ -24,8 +34,10 @@ class VidaraExtractor : Extractor() {
             throw Exception("File code not found in URL")
         }
 
-        val baseUrl = URL(link).protocol + "://" + URL(link).host
-        val service = Service.build(baseUrl)
+        val parsedUrl = URL(link)
+        val baseUrl =
+            "${parsedUrl.protocol}://${parsedUrl.host}/"
+        val service = Service.build(baseUrl, link)
 
         val responseBody = service.postStream(
             StreamRequest(filecode = fileCode, device = "web")
@@ -79,9 +91,33 @@ class VidaraExtractor : Extractor() {
     private interface Service {
 
         companion object {
-            fun build(baseUrl: String): Service {
+            fun build(
+                baseUrl: String,
+                originalLink: String,
+            ): Service {
+                val origin = baseUrl.trimEnd('/')
+
                 val client = OkHttpClient.Builder()
                     .dns(DnsResolver.doh)
+                    .followRedirects(true)
+                    .followSslRedirects(true)
+                    .addInterceptor { chain ->
+                        val request =
+                            chain.request()
+                                .newBuilder()
+                                .header(
+                                    "User-Agent",
+                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                                        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                                        "Chrome/124.0.0.0 Safari/537.36"
+                                )
+                                .header("Accept", "application/json")
+                                .header("Origin", origin)
+                                .header("Referer", originalLink)
+                                .build()
+
+                        chain.proceed(request)
+                    }
                     .build()
 
                 val retrofit = Retrofit.Builder()

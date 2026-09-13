@@ -529,4 +529,14 @@
     <string name="settings_provider_kellerkino_domain_summary">Basisdomain für KellerKino ändern</string>
     <string name="settings_provider_kellerkino_domain_reset">KellerKino-Domain zurücksetzen</string>
 
+
+    <string name="settings_tmdb_standard_catalogs">TMDb Standard-Kataloge</string>
+    <string name="settings_tmdb_standard_trending">Trends</string>
+    <string name="settings_tmdb_standard_trending_summary">Allgemeine TMDb-Trends anzeigen</string>
+    <string name="settings_tmdb_standard_popular_movies">Beliebte Filme</string>
+    <string name="settings_tmdb_standard_popular_movies_summary">Beliebte Filme anzeigen</string>
+    <string name="settings_tmdb_standard_popular_tv">Beliebte Serien</string>
+    <string name="settings_tmdb_standard_popular_tv_summary">Beliebte Serien anzeigen</string>
+    <string name="settings_tmdb_standard_popular_anime">Beliebte Anime</string>
+    <string name="settings_tmdb_standard_popular_anime_summary">Beliebte Anime-Filme und -Serien anzeigen</string>
 </resources>

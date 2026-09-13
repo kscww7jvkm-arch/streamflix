@@ -625,4 +625,14 @@
     <string name="settings_provider_kellerkino_domain_summary">Override the KellerKino base domain</string>
     <string name="settings_provider_kellerkino_domain_reset">Reset KellerKino domain</string>
 
+
+    <string name="settings_tmdb_standard_catalogs">TMDb standard catalogs</string>
+    <string name="settings_tmdb_standard_trending">Trending</string>
+    <string name="settings_tmdb_standard_trending_summary">Show the general TMDb trending row</string>
+    <string name="settings_tmdb_standard_popular_movies">Popular Movies</string>
+    <string name="settings_tmdb_standard_popular_movies_summary">Show popular movies</string>
+    <string name="settings_tmdb_standard_popular_tv">Popular TV Shows</string>
+    <string name="settings_tmdb_standard_popular_tv_summary">Show popular TV shows</string>
+    <string name="settings_tmdb_standard_popular_anime">Popular Anime</string>
+    <string name="settings_tmdb_standard_popular_anime_summary">Show popular anime movies and series</string>
 </resources>

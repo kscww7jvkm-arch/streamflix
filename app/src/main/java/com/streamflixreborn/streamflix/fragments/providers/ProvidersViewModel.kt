@@ -47,19 +47,24 @@ class ProvidersViewModel : ViewModel() {
                 .toMutableList()
 
             if (language == null || isFavoritesFilter) {
-                val availableLanguages = Provider.providers.keys.map { it.language }.distinct()
+                val availableLanguages =
+                    Provider.providers.keys
+                        .map { it.language }
+                        .distinct()
+
                 availableLanguages.forEach { lang ->
-                    if (lang != "pl") {
-                        val tmdbName = "TMDb (${getLanguageDisplayName(lang)})"
-                        if (!isFavoritesFilter || favorites.contains(tmdbName)) {
-                            providers.add(TmdbProvider(lang))
-                        }
+                    val tmdbName =
+                        "TMDb (${getLanguageDisplayName(lang)})"
+
+                    if (
+                        !isFavoritesFilter ||
+                        favorites.contains(tmdbName)
+                    ) {
+                        providers.add(TmdbProvider(lang))
                     }
                 }
             } else {
-                if (language != "pl") {
-                    providers.add(TmdbProvider(language))
-                }
+                providers.add(TmdbProvider(language))
             }
 
             val modelProviders = providers.map {

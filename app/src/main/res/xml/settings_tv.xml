@@ -11,6 +11,35 @@
 
 
         <PreferenceCategory
+            android:title="@string/settings_tmdb_standard_catalogs">
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_STANDARD_TRENDING"
+                android:title="@string/settings_tmdb_standard_trending"
+                android:summary="@string/settings_tmdb_standard_trending_summary"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_STANDARD_POPULAR_MOVIES"
+                android:title="@string/settings_tmdb_standard_popular_movies"
+                android:summary="@string/settings_tmdb_standard_popular_movies_summary"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_STANDARD_POPULAR_TV"
+                android:title="@string/settings_tmdb_standard_popular_tv"
+                android:summary="@string/settings_tmdb_standard_popular_tv_summary"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_STANDARD_POPULAR_ANIME"
+                android:title="@string/settings_tmdb_standard_popular_anime"
+                android:summary="@string/settings_tmdb_standard_popular_anime_summary"
+                android:defaultValue="true" />
+
+        </PreferenceCategory>
+
+        <PreferenceCategory
             android:title="@string/settings_tmdb_streaming_catalogs">
 
             <SwitchPreferenceCompat

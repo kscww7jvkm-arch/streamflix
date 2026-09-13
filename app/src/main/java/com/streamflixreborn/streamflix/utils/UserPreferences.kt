@@ -438,6 +438,17 @@ object UserPreferences {
                 ?: setOf("popular")
         set(value) =
             Key.TMDB_CATALOG_MODES.setStringSet(value)
+    var tmdbStandardCatalogs: Set<String>
+        get() =
+            Key.TMDB_STANDARD_CATALOGS.getStringSet()
+                ?: setOf(
+                    "trending",
+                    "popular_movies",
+                    "popular_tv",
+                    "popular_anime",
+                )
+        set(value) =
+            Key.TMDB_STANDARD_CATALOGS.setStringSet(value)
 
     var enableTmdb: Boolean
         get() = Key.ENABLE_TMDB.getBoolean() ?: true
@@ -823,6 +834,7 @@ object UserPreferences {
         ENABLE_TMDB,
         TMDB_CATALOG_PROVIDERS,
         TMDB_CATALOG_MODES,
+        TMDB_STANDARD_CATALOGS,
         PARENTAL_CONTROL_PIN,
         PARENTAL_CONTROL_ADMIN_PIN,
         PARENTAL_CONTROL_MAX_AGE,

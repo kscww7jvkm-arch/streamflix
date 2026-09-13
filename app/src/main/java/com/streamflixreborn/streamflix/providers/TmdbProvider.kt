@@ -80,6 +80,9 @@ class TmdbProvider(override val language: String) : Provider {
             }
         }
 
+        val selectedStandardCatalogs =
+            UserPreferences.tmdbStandardCatalogs
+
         val trendingDeferred = async {
             awaitAll(
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 1, language = language) },
@@ -259,41 +262,60 @@ class TmdbProvider(override val language: String) : Provider {
             )
         )
 
-        categories.add(
-            Category(
-                name = getTranslation("Trending"),
-                list = trending.safeSubList(5, trending.size).mapNotNull(mapMulti)
+        if ("trending" in selectedStandardCatalogs) {
+            categories.add(
+                Category(
+                    name = getTranslation("Trending"),
+                    list =
+                        trending
+                            .safeSubList(5, trending.size)
+                            .mapNotNull(mapMulti)
+                )
             )
-        )
+        }
 
-        categories.add(
-            Category(
-                name = getTranslation("Popular Movies"),
-                list = popularMoviesDeferred.await().mapNotNull(mapMulti)
+        if ("popular_movies" in selectedStandardCatalogs) {
+            categories.add(
+                Category(
+                    name = getTranslation("Popular Movies"),
+                    list =
+                        popularMoviesDeferred
+                            .await()
+                            .mapNotNull(mapMulti)
+                )
             )
-        )
+        }
 
-        categories.add(
-            Category(
-                name = getTranslation("Popular TV Shows"),
-                list = popularTvShowsDeferred.await().mapNotNull(mapMulti)
+        if ("popular_tv" in selectedStandardCatalogs) {
+            categories.add(
+                Category(
+                    name = getTranslation("Popular TV Shows"),
+                    list =
+                        popularTvShowsDeferred
+                            .await()
+                            .mapNotNull(mapMulti)
+                )
             )
-        )
+        }
 
-        categories.add(
-            Category(
-                name = getTranslation("Popular Anime"),
-                list = popularAnimeDeferred.await()
-                    .sortedByDescending {
-                        when (it) {
-                            is TMDb3.Movie -> it.popularity
-                            is TMDb3.Person -> it.popularity
-                            is TMDb3.Tv -> it.popularity
-                        }
-                    }
-                    .mapNotNull(mapMulti),
+        if ("popular_anime" in selectedStandardCatalogs) {
+            categories.add(
+                Category(
+                    name = getTranslation("Popular Anime"),
+                    list =
+                        popularAnimeDeferred
+                            .await()
+                            .sortedByDescending {
+                                when (it) {
+                                    is TMDb3.Movie -> it.popularity
+                                    is TMDb3.Person -> it.popularity
+                                    is TMDb3.Tv -> it.popularity
+                                }
+                            }
+                            .mapNotNull(mapMulti),
+                )
             )
-        )
+        }
 
         streamingCatalogDeferred.forEach { (catalog, mode, deferred) ->
             val modeLabel = when (mode) {

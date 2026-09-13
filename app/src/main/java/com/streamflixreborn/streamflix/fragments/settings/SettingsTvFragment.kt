@@ -669,6 +669,36 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
             }
 
 
+        val tmdbStandardCatalogMap = mapOf(
+            "TMDB_STANDARD_TRENDING" to "trending",
+            "TMDB_STANDARD_POPULAR_MOVIES" to "popular_movies",
+            "TMDB_STANDARD_POPULAR_TV" to "popular_tv",
+            "TMDB_STANDARD_POPULAR_ANIME" to "popular_anime",
+        )
+
+        tmdbStandardCatalogMap.forEach { (prefKey, valueKey) ->
+            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
+                isChecked =
+                    valueKey in UserPreferences.tmdbStandardCatalogs
+
+                setOnPreferenceChangeListener { _, newValue ->
+                    val selected =
+                        UserPreferences.tmdbStandardCatalogs
+                            .toMutableSet()
+
+                    if (newValue as Boolean) {
+                        selected.add(valueKey)
+                    } else {
+                        selected.remove(valueKey)
+                    }
+
+                    UserPreferences.tmdbStandardCatalogs = selected
+                    ProviderChangeNotifier.notifyProviderChanged()
+                    true
+                }
+            }
+        }
+
         val tmdbProviderMap = mapOf(
             "TMDB_CATALOG_NETFLIX" to "netflix",
             "TMDB_CATALOG_PRIME" to "prime",

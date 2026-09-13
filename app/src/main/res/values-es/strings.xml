@@ -507,4 +507,14 @@
     <string name="settings_force_extra_buffer_summary">Activa búfer extra para todos los servidores de forma predeterminada</string>
     <string name="supabase_instructions_title">Instrucciones</string>
     <string name="supabase_instructions_summary">Abrir en el navegador la guía detallada para configurar la cuenta y la sincronización de Supabase</string>
+
+    <string name="settings_tmdb_standard_catalogs">Catálogos estándar de TMDb</string>
+    <string name="settings_tmdb_standard_trending">Tendencias</string>
+    <string name="settings_tmdb_standard_trending_summary">Mostrar las tendencias de TMDb</string>
+    <string name="settings_tmdb_standard_popular_movies">Películas populares</string>
+    <string name="settings_tmdb_standard_popular_movies_summary">Mostrar películas populares</string>
+    <string name="settings_tmdb_standard_popular_tv">Series populares</string>
+    <string name="settings_tmdb_standard_popular_tv_summary">Mostrar series populares</string>
+    <string name="settings_tmdb_standard_popular_anime">Anime popular</string>
+    <string name="settings_tmdb_standard_popular_anime_summary">Mostrar películas y series de anime populares</string>
 </resources>

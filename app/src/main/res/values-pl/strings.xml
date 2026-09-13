@@ -166,4 +166,14 @@
     <string name="settings_app_language_polish">Polski</string>
     <string name="supabase_instructions_title">Instrukcje</string>
     <string name="supabase_instructions_summary">Otwórz w przeglądarce szczegółową instrukcję konfiguracji konta i synchronizacji Supabase</string>
+
+    <string name="settings_tmdb_standard_catalogs">Standardowe katalogi TMDb</string>
+    <string name="settings_tmdb_standard_trending">Trendy</string>
+    <string name="settings_tmdb_standard_trending_summary">Pokaż trendy TMDb</string>
+    <string name="settings_tmdb_standard_popular_movies">Popularne filmy</string>
+    <string name="settings_tmdb_standard_popular_movies_summary">Pokaż popularne filmy</string>
+    <string name="settings_tmdb_standard_popular_tv">Popularne seriale</string>
+    <string name="settings_tmdb_standard_popular_tv_summary">Pokaż popularne seriale</string>
+    <string name="settings_tmdb_standard_popular_anime">Popularne anime</string>
+    <string name="settings_tmdb_standard_popular_anime_summary">Pokaż popularne filmy i seriale anime</string>
 </resources>

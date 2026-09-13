@@ -112,6 +112,7 @@ abstract class Extractor {
             StreamixExtractor(),
             ShareCloudyExtractor(),
             StreamrubyExtractor(),
+            FirestreamExtractor(),
             VidaraExtractor(),
             VidsonicExtractor(),
             HxfileExtractor(),

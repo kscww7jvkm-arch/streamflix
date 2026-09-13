@@ -505,4 +505,14 @@
     <string name="settings_refresh_cache_success">Cache aggiornata con successo</string>
     <string name="supabase_instructions_title">Istruzioni</string>
     <string name="supabase_instructions_summary">Apri nel browser la guida dettagliata per configurare account e sincronizzazione Supabase</string>
+
+    <string name="settings_tmdb_standard_catalogs">Cataloghi standard TMDb</string>
+    <string name="settings_tmdb_standard_trending">Di tendenza</string>
+    <string name="settings_tmdb_standard_trending_summary">Mostra i contenuti TMDb di tendenza</string>
+    <string name="settings_tmdb_standard_popular_movies">Film popolari</string>
+    <string name="settings_tmdb_standard_popular_movies_summary">Mostra i film popolari</string>
+    <string name="settings_tmdb_standard_popular_tv">Serie TV popolari</string>
+    <string name="settings_tmdb_standard_popular_tv_summary">Mostra le serie TV popolari</string>
+    <string name="settings_tmdb_standard_popular_anime">Anime popolari</string>
+    <string name="settings_tmdb_standard_popular_anime_summary">Mostra film e serie anime popolari</string>
 </resources>
