@@ -83,31 +83,38 @@ class TmdbProvider(override val language: String) : Provider {
         val selectedStandardCatalogs =
             UserPreferences.tmdbStandardCatalogs
 
-        val trendingDeferred = async {
+        val trendingDeferred = if ("trending" in selectedStandardCatalogs) {
+            async {
             awaitAll(
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 1, language = language) },
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 2, language = language) },
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 3, language = language) },
             ).flatMap { it.results }
-        }
+            }
+        } else null
 
-        val popularMoviesDeferred = async {
+        val popularMoviesDeferred = if ("popular_movies" in selectedStandardCatalogs) {
+            async {
             awaitAll(
                 async { TMDb3.MovieLists.popular(page = 1, language = language) },
                 async { TMDb3.MovieLists.popular(page = 2, language = language) },
                 async { TMDb3.MovieLists.popular(page = 3, language = language) },
             ).flatMap { it.results }
-        }
+            }
+        } else null
 
-        val popularTvShowsDeferred = async {
+        val popularTvShowsDeferred = if ("popular_tv" in selectedStandardCatalogs) {
+            async {
             awaitAll(
                 async { TMDb3.TvSeriesLists.popular(page = 1, language = language) },
                 async { TMDb3.TvSeriesLists.popular(page = 2, language = language) },
                 async { TMDb3.TvSeriesLists.popular(page = 3, language = language) },
             ).flatMap { it.results }
-        }
+            }
+        } else null
 
-        val popularAnimeDeferred = async {
+        val popularAnimeDeferred = if ("popular_anime" in selectedStandardCatalogs) {
+            async {
             awaitAll(
                 async {
                     TMDb3.Discover.movie(
@@ -124,7 +131,8 @@ class TmdbProvider(override val language: String) : Provider {
                     )
                 },
             ).flatMap { it.results }
-        }
+            }
+        } else null
 
         // TMDB_CONFIGURABLE_STREAMING_CATALOGS_V1
         data class StreamingCatalog(
@@ -254,15 +262,16 @@ class TmdbProvider(override val language: String) : Provider {
                 }
             }
 
-        val trending = trendingDeferred.await()
-        categories.add(
-            Category(
-                name = Category.FEATURED,
-                list = trending.safeSubList(0, 5).mapNotNull(mapMulti)
-            )
-        )
+        val trending = trendingDeferred?.await().orEmpty()
 
-        if ("trending" in selectedStandardCatalogs) {
+        if ("trending" in selectedStandardCatalogs && trending.isNotEmpty()) {
+            categories.add(
+                Category(
+                    name = Category.FEATURED,
+                    list = trending.safeSubList(0, 5).mapNotNull(mapMulti)
+                )
+            )
+
             categories.add(
                 Category(
                     name = getTranslation("Trending"),
@@ -280,7 +289,8 @@ class TmdbProvider(override val language: String) : Provider {
                     name = getTranslation("Popular Movies"),
                     list =
                         popularMoviesDeferred
-                            .await()
+                            ?.await()
+                            .orEmpty()
                             .mapNotNull(mapMulti)
                 )
             )
@@ -292,7 +302,8 @@ class TmdbProvider(override val language: String) : Provider {
                     name = getTranslation("Popular TV Shows"),
                     list =
                         popularTvShowsDeferred
-                            .await()
+                            ?.await()
+                            .orEmpty()
                             .mapNotNull(mapMulti)
                 )
             )
@@ -304,7 +315,8 @@ class TmdbProvider(override val language: String) : Provider {
                     name = getTranslation("Popular Anime"),
                     list =
                         popularAnimeDeferred
-                            .await()
+                            ?.await()
+                            .orEmpty()
                             .sortedByDescending {
                                 when (it) {
                                     is TMDb3.Movie -> it.popularity
