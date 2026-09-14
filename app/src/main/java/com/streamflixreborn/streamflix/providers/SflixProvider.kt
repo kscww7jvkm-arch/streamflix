@@ -28,15 +28,37 @@ import java.util.concurrent.TimeUnit
 
 object SflixProvider : Provider {
 
-    private const val DEFAULT_BASE_URL = "https://sflix.win/"
+    private const val DEFAULT_BASE_URL = "https://sflix.win/home/"
     override val name = "SFlix"
 
     override val baseUrl: String
-        get() =
-            UserPreferences.providerDomainForDisplay(
-                name,
-                DEFAULT_BASE_URL,
-            ).trimEnd('/') + "/"
+        get() {
+            val configured =
+                UserPreferences.providerDomainForDisplay(
+                    name,
+                    DEFAULT_BASE_URL,
+                ).trim()
+
+            val normalized =
+                if (
+                    configured.startsWith("http://", ignoreCase = true) ||
+                    configured.startsWith("https://", ignoreCase = true)
+                ) {
+                    configured
+                } else {
+                    "https://$configured"
+                }
+
+            // sflix.win/ is only the landing page.
+            // The real site starts at /home/, but Retrofit routes such as
+            // /movies/, /tv-series/ and /series/... must use the domain root.
+            val rootUrl =
+                normalized
+                    .trimEnd('/')
+                    .removeSuffix("/home")
+
+            return rootUrl.trimEnd('/') + "/"
+        }
     override val logo = "https://img.sflix.to/xxrz/400x400/100/66/35/66356c25ce98cb12993249e21742b129/66356c25ce98cb12993249e21742b129.png"
     override val language = "en"
 

@@ -1629,7 +1629,8 @@ findPreference<EditTextPreference>("provider_url")?.apply {
             "HDFilme" -> "https://hdfilme.cafe/"
             "MEGAKino" -> "https://megakino12.com"
             "Einschalten" -> "https://einschalten.in"
-            "SFlix" -> "https://sflix.win/"
+            "SFlix" -> "https://sflix.win/home/"
+            "Ridomovies" -> "https://ridomovies.su/"
             else -> null
         }
 

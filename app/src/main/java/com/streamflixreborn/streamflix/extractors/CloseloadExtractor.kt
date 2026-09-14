@@ -24,7 +24,7 @@ class CloseloadExtractor : Extractor() {
 
     override suspend fun extract(link: String): Video {
         val service = Service.build(mainUrl)
-        val document = service.get(link, RidomoviesProvider.URL)
+        val document = service.get(link, RidomoviesProvider.baseUrl)
         val html = document.toString()
         var searchHtml = html
         

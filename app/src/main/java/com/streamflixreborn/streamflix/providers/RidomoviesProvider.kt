@@ -13,6 +13,7 @@ import com.streamflixreborn.streamflix.models.Show
 import com.streamflixreborn.streamflix.models.TvShow
 import com.streamflixreborn.streamflix.models.Video
 import com.streamflixreborn.streamflix.utils.DnsResolver
+import com.streamflixreborn.streamflix.utils.UserPreferences
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
@@ -30,19 +31,43 @@ import java.util.concurrent.TimeUnit
 
 object RidomoviesProvider : Provider {
 
-    const val URL = "https://ridomovies.su/"
-    override val baseUrl = URL
+    const val DEFAULT_BASE_URL = "https://ridomovies.su/"
+
     override val name = "Ridomovies"
-    override val logo = "$URL/uploads/logos/hero_logo-1-1769040020-ab537326.png"
+
+    override val baseUrl: String
+        get() {
+            val configured =
+                UserPreferences.providerDomainForDisplay(
+                    name,
+                    DEFAULT_BASE_URL,
+                ).trim()
+
+            val normalized =
+                if (
+                    configured.startsWith("http://", ignoreCase = true) ||
+                    configured.startsWith("https://", ignoreCase = true)
+                ) {
+                    configured
+                } else {
+                    "https://$configured"
+                }
+
+            return normalized.trimEnd('/') + "/"
+        }
+
+    override val logo: String
+        get() = "${baseUrl}uploads/logos/hero_logo-1-1769040020-ab537326.png"
     override val language = "en"
 
-    private val service = Service.build()
+    private val service: Service
+        get() = Service.build(baseUrl)
     private var currentSlug: String? = null
 
     private fun fixUrl(path: String?): String? {
         if (path.isNullOrBlank()) return null
         if (path.startsWith("http://") || path.startsWith("https://")) return path
-        return "${URL.trimEnd('/')}/${path.trimStart('/')}"
+        return "${baseUrl.trimEnd('/')}/${path.trimStart('/')}"
     }
 
     override suspend fun getHome(): List<Category> {
@@ -418,7 +443,7 @@ object RidomoviesProvider : Provider {
     private interface Service {
 
         companion object {
-            fun build(): Service {
+            fun build(baseUrl: String): Service {
                 val client = OkHttpClient.Builder()
                     .readTimeout(30, TimeUnit.SECONDS)
                     .connectTimeout(30, TimeUnit.SECONDS)
@@ -449,7 +474,7 @@ object RidomoviesProvider : Provider {
                     .build()
 
                 val retrofit = Retrofit.Builder()
-                    .baseUrl(URL)
+                    .baseUrl(baseUrl.trimEnd('/') + "/")
                     .addConverterFactory(JsoupConverterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(client)
