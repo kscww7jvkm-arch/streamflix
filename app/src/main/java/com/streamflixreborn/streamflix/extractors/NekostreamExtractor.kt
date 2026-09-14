@@ -357,17 +357,31 @@ class NekostreamExtractor : Extractor() {
                                 ?: break
 
                         Thread {
-                            runCatching {
+                            try {
                                 handleMegaPlayRelayRequest(
                                     clientSocket = clientSocket,
                                     sourceUrl = sourceUrl,
                                     crypto = crypto,
                                     origin = origin,
                                 )
-                            }
+                            } catch (error: Exception) {
+                                Log.e(
+                                    TAG,
+                                    "MegaPlay relay request crashed",
+                                    error,
+                                )
 
-                            runCatching {
-                                clientSocket.close()
+                                runCatching {
+                                    writeRelayError(
+                                        output = clientSocket.getOutputStream(),
+                                        code = 500,
+                                        message = "Relay request failed",
+                                    )
+                                }
+                            } finally {
+                                runCatching {
+                                    clientSocket.close()
+                                }
                             }
                         }.apply {
                             isDaemon = true
@@ -519,12 +533,18 @@ class NekostreamExtractor : Extractor() {
         var lastCode = 502
 
         for (candidate in megaPlayRequestCandidates(playlistUrl)) {
-            val request = buildMegaPlayMediaRequest(
-                url = candidate,
-                origin = origin,
-            ).build()
+            try {
+                Log.e(
+                    TAG,
+                    "MegaPlay candidate RAW=[$candidate] playlist=[$playlistUrl]",
+                )
 
-            client.newCall(request).execute().use { response ->
+                val request = buildMegaPlayMediaRequest(
+                    url = candidate,
+                    origin = origin,
+                ).build()
+
+                client.newCall(request).execute().use { response ->
                 lastCode = response.code
 
                 Log.d(
@@ -585,9 +605,17 @@ class NekostreamExtractor : Extractor() {
                     headers.toByteArray(Charsets.UTF_8)
                 )
                 output.write(bytes)
-                output.flush()
+                    output.flush()
 
-                return
+                    return
+                }
+            } catch (error: Exception) {
+                Log.e(
+                    TAG,
+                    "MegaPlay playlist candidate crashed " +
+                        "host=${safeHost(candidate)}",
+                    error,
+                )
             }
         }
 
@@ -667,18 +695,24 @@ class NekostreamExtractor : Extractor() {
         baseUrl: String,
         value: String,
     ): String {
+        val normalizedValue =
+            normalizeMegaPlayUrl(value)
+
         if (
-            value.startsWith("http://") ||
-            value.startsWith("https://")
+            normalizedValue.startsWith("http://") ||
+            normalizedValue.startsWith("https://")
         ) {
-            return value
+            return normalizedValue
         }
 
+        val normalizedBase =
+            normalizeMegaPlayUrl(baseUrl)
+
         return runCatching {
-            URI(baseUrl)
-                .resolve(value)
+            URI(normalizedBase)
+                .resolve(normalizedValue)
                 .toString()
-        }.getOrDefault(value)
+        }.getOrDefault(normalizedValue)
     }
 
     private fun localRelayUrl(
@@ -716,11 +750,70 @@ class NekostreamExtractor : Extractor() {
             normalizedHost.endsWith(".$normalizedDomain")
     }
 
+    private fun normalizeMegaPlayUrl(
+        url: String,
+    ): String {
+        val clean = url
+            .trim()
+            .trim('"', '\'')
+
+        // Already valid.
+        if (
+            clean.startsWith("https://", ignoreCase = true) ||
+            clean.startsWith("http://", ignoreCase = true)
+        ) {
+            return clean
+        }
+
+        /*
+         * MegaPlay's decrypted payload currently arrives on Android with a
+         * damaged scheme separator, visible in logcat as for example:
+         *
+         *     httpsL/fetch.nexabloom.top/...
+         *
+         * Do not depend on the exact damaged character. If the value starts
+         * with http/https, reconstruct the scheme from the first slash after
+         * the scheme name.
+         */
+        fun repairScheme(
+            scheme: String,
+        ): String? {
+            if (!clean.startsWith(scheme, ignoreCase = true)) {
+                return null
+            }
+
+            val slashIndex = clean.indexOf(
+                '/',
+                startIndex = scheme.length,
+            )
+
+            if (slashIndex < 0) {
+                return null
+            }
+
+            val remainder = clean
+                .substring(slashIndex + 1)
+                .trimStart('/')
+
+            if (remainder.isBlank()) {
+                return null
+            }
+
+            return "$scheme://$remainder"
+        }
+
+        return repairScheme("https")
+            ?: repairScheme("http")
+            ?: clean
+    }
+
     private fun safeHost(
         url: String,
     ): String {
         return runCatching {
-            URI(url).host.orEmpty()
+            URI(
+                normalizeMegaPlayUrl(url)
+            ).host.orEmpty()
         }.getOrDefault("")
     }
 
@@ -745,15 +838,70 @@ class NekostreamExtractor : Extractor() {
     private fun megaPlayRequestCandidates(
         url: String,
     ): List<String> {
-        val candidates = mutableListOf(url)
+        val normalizedUrl =
+            normalizeMegaPlayUrl(url)
+
+        Log.e(
+            TAG,
+            "NORM_V3 input=[$url] output=[$normalizedUrl]",
+        )
+
+        val candidates =
+            mutableListOf(normalizedUrl)
 
         val uri = runCatching {
-            URI(url)
+            URI(normalizedUrl)
         }.getOrNull() ?: return candidates
 
         val host = uri.host
             ?.lowercase()
             .orEmpty()
+
+        /*
+         * MEGAPLAY_MIKORA_CDN_FALLBACK_V1
+         *
+         * Some MegaPlay sources currently return the same media through
+         * fetch.nexabloom.top / ncdn.imgnex.top, but those hosts can answer
+         * with HTTP 403.
+         *
+         * The same content IDs are also available through megap.mikora.top.
+         * Its path is identical except that the /anime prefix is omitted.
+         */
+        if (
+            (
+                isDomainOrSubdomain(
+                    host = host,
+                    domain = "fetch.nexabloom.top",
+                ) ||
+                isDomainOrSubdomain(
+                    host = host,
+                    domain = "ncdn.imgnex.top",
+                )
+            ) &&
+            uri.rawPath.orEmpty().startsWith("/anime/")
+        ) {
+            val mirrorPath =
+                uri.rawPath
+                    .orEmpty()
+                    .removePrefix("/anime")
+
+            val mirrorUrl = buildString {
+                append("https://megap.mikora.top")
+                append(mirrorPath)
+
+                if (!uri.rawQuery.isNullOrBlank()) {
+                    append("?")
+                    append(uri.rawQuery)
+                }
+            }
+
+            Log.d(
+                TAG,
+                "MegaPlay Mikora fallback $host -> $mirrorUrl",
+            )
+
+            candidates += mirrorUrl
+        }
 
         /*
          * Current MegaPlay newclient.min.js uses yoot.akirax.buzz as
@@ -985,7 +1133,9 @@ class NekostreamExtractor : Extractor() {
         origin: String,
     ): Request.Builder {
         return Request.Builder()
-            .url(url)
+            .url(
+                normalizeMegaPlayUrl(url)
+            )
             .header(
                 "User-Agent",
                 USER_AGENT,
