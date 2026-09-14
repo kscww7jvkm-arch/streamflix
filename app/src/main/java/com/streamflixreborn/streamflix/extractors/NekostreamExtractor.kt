@@ -1,13 +1,19 @@
 package com.streamflixreborn.streamflix.extractors
 
 import android.net.Uri
+import android.util.Base64
 import androidx.media3.common.MimeTypes
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.streamflixreborn.streamflix.models.Video
 import com.streamflixreborn.streamflix.utils.DnsResolver
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.net.URI
 import java.util.concurrent.TimeUnit
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 class NekostreamExtractor : Extractor() {
 
@@ -58,30 +64,46 @@ class NekostreamExtractor : Extractor() {
             pageUri.getQueryParameter("s")?.let { append("&s=${Uri.encode(it)}") }
         }
 
-        // MegaPlay's current player uses getSourcesNew, while older records
-        // may still expose only the legacy response format.
-        val sources = listOf("getSourcesNew", "getSources").asSequence()
-            .mapNotNull { endpoint ->
-                runCatching {
-                    Gson().fromJson(
-                        getText(
-                            url = sourcesUrl(endpoint),
-                            referer = streamPageUrl,
-                            origin = origin,
-                            accept = "application/json, text/javascript, */*; q=0.01",
-                            requestedWith = true,
-                        ),
-                        SourcesResponse::class.java,
+        // MegaPlay may return either a plain sources.file or the newer
+        // encrypted enc payload. Keep both endpoint variants because old
+        // records may still use the legacy route.
+        val responses = listOf("getSourcesNew", "getSources").mapNotNull { endpoint ->
+            runCatching {
+                Gson().fromJson(
+                    getText(
+                        url = sourcesUrl(endpoint),
+                        referer = streamPageUrl,
+                        origin = origin,
+                        accept = "application/json, text/javascript, */*; q=0.01",
+                        requestedWith = true,
+                    ),
+                    SourcesResponse::class.java,
+                )
+            }.getOrNull()
+        }
+
+        val source = responses.asSequence()
+            .mapNotNull { it.sources?.file?.takeIf(String::isNotBlank) }
+            .firstOrNull()
+            ?: responses.asSequence()
+                .mapNotNull { it.enc?.takeIf(String::isNotBlank) }
+                .mapNotNull { encrypted ->
+                    decryptMegaPlaySource(
+                        encrypted = encrypted,
+                        pageBody = pageBody,
+                        pageUrl = streamPageUrl,
+                        origin = origin,
                     )
-                }.getOrNull()
-            }
-            .firstOrNull { !it.sources?.file.isNullOrBlank() }
+                }
+                .firstOrNull()
             ?: throw Exception("Nekostream source not found")
-        val source = sources.sources?.file ?: throw Exception("Nekostream source not found")
+
+        val metadata = responses.firstOrNull { !it.tracks.isNullOrEmpty() }
+            ?: responses.firstOrNull()
 
         return Video(
             source = source,
-            subtitles = sources.tracks.orEmpty()
+            subtitles = metadata?.tracks.orEmpty()
                 .filter { it.kind == null || it.kind == "captions" }
                 .mapNotNull {
                     Video.Subtitle(
@@ -104,6 +126,126 @@ class NekostreamExtractor : Extractor() {
             ),
             type = MimeTypes.APPLICATION_M3U8,
         )
+    }
+
+    private fun decryptMegaPlaySource(
+        encrypted: String,
+        pageBody: String,
+        pageUrl: String,
+        origin: String,
+    ): String? {
+        val scriptUrls = Regex(
+            """<script[^>]+src=["']([^"']+)["']""",
+            RegexOption.IGNORE_CASE,
+        )
+            .findAll(pageBody)
+            .mapNotNull { it.groupValues.getOrNull(1) }
+            .distinct()
+            .toList()
+
+        for (src in scriptUrls) {
+            val scriptUrl = runCatching {
+                URI(pageUrl).resolve(src).toString()
+            }.getOrNull() ?: continue
+
+            val script = runCatching {
+                getText(
+                    url = scriptUrl,
+                    referer = pageUrl,
+                    origin = origin,
+                    accept = "*/*",
+                )
+            }.getOrNull() ?: continue
+
+            if (
+                !script.contains("getSources", ignoreCase = true) ||
+                !script.contains("AES-CBC", ignoreCase = true)
+            ) {
+                continue
+            }
+
+            // Current MegaPlay player exposes the SegmentDecrypt AES seed
+            // and IV as adjacent P/w string constants. Resolve them from the
+            // live player script instead of hardcoding a version.
+            val keyIv = Regex(
+                """var\s+P=["']([^"']+)["'],w=["']([^"']+)["']"""
+            )
+                .findAll(script)
+                .firstOrNull { match ->
+                    val from = match.range.last + 1
+                    val to = minOf(script.length, from + 1800)
+                    script.substring(from, to)
+                        .contains("AES-CBC", ignoreCase = true)
+                }
+                ?: continue
+
+            val keySeed = keyIv.groupValues[1]
+            val ivSeed = keyIv.groupValues[2]
+
+            val key = ByteArray(32)
+            keySeed.toByteArray(Charsets.UTF_8)
+                .copyInto(
+                    destination = key,
+                    endIndex = minOf(
+                        keySeed.toByteArray(Charsets.UTF_8).size,
+                        key.size,
+                    ),
+                )
+
+            val iv = ByteArray(16)
+            ivSeed.toByteArray(Charsets.UTF_8)
+                .copyInto(
+                    destination = iv,
+                    endIndex = minOf(
+                        ivSeed.toByteArray(Charsets.UTF_8).size,
+                        iv.size,
+                    ),
+                )
+
+            val padded = encrypted + "=".repeat(
+                (4 - encrypted.length % 4) % 4
+            )
+
+            val cipherText = runCatching {
+                Base64.decode(
+                    padded,
+                    Base64.URL_SAFE or Base64.NO_WRAP,
+                )
+            }.getOrNull() ?: continue
+
+            val plainText = runCatching {
+                val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+                cipher.init(
+                    Cipher.DECRYPT_MODE,
+                    SecretKeySpec(key, "AES"),
+                    IvParameterSpec(iv),
+                )
+
+                cipher.doFinal(cipherText)
+                    .toString(Charsets.UTF_8)
+            }.getOrNull() ?: continue
+
+            val decoded = runCatching {
+                JsonParser.parseString(plainText).asJsonObject
+            }.getOrNull() ?: continue
+
+            val source = sequenceOf("file", "url")
+                .mapNotNull { keyName ->
+                    decoded.get(keyName)
+                        ?.takeUnless { it.isJsonNull }
+                        ?.runCatching { asString }
+                        ?.getOrNull()
+                        ?.trim()
+                        ?.takeIf(String::isNotBlank)
+                }
+                .firstOrNull()
+
+            if (!source.isNullOrBlank()) {
+                return source
+            }
+        }
+
+        return null
     }
 
     private fun getText(
@@ -139,6 +281,7 @@ class NekostreamExtractor : Extractor() {
     private data class SourcesResponse(
         val sources: Sources? = null,
         val tracks: List<Track>? = null,
+        val enc: String? = null,
     ) {
         data class Sources(
             val file: String? = null,
