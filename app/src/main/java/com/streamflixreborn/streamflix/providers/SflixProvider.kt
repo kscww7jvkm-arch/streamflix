@@ -13,6 +13,7 @@ import com.streamflixreborn.streamflix.models.Season
 import com.streamflixreborn.streamflix.models.TvShow
 import com.streamflixreborn.streamflix.models.Video
 import com.streamflixreborn.streamflix.utils.DnsResolver
+import com.streamflixreborn.streamflix.utils.UserPreferences
 import okhttp3.OkHttpClient
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -27,13 +28,20 @@ import java.util.concurrent.TimeUnit
 
 object SflixProvider : Provider {
 
-    private const val URL = "https://sflix.to/"
-    override val baseUrl = URL
+    private const val DEFAULT_BASE_URL = "https://sflix.win/"
     override val name = "SFlix"
+
+    override val baseUrl: String
+        get() =
+            UserPreferences.providerDomainForDisplay(
+                name,
+                DEFAULT_BASE_URL,
+            ).trimEnd('/') + "/"
     override val logo = "https://img.sflix.to/xxrz/400x400/100/66/35/66356c25ce98cb12993249e21742b129/66356c25ce98cb12993249e21742b129.png"
     override val language = "en"
 
-    private val service = SflixService.build()
+    private val service: SflixService
+        get() = SflixService.build(baseUrl)
 
 
     override suspend fun getHome(): List<Category> {
@@ -350,7 +358,7 @@ object SflixProvider : Provider {
 
 
     override suspend fun getMovie(id: String): Movie {
-        val document = service.getMovie(id)
+        val document = service.getPage(id.toAbsoluteUrl())
 
         val movie = Movie(
             id = id,
@@ -443,7 +451,7 @@ object SflixProvider : Provider {
 
 
     override suspend fun getTvShow(id: String): TvShow {
-        val document = service.getTvShow(id)
+        val document = service.getPage(id.toAbsoluteUrl())
 
         val tvShow = TvShow(
             id = id,
@@ -469,15 +477,26 @@ object SflixProvider : Provider {
             banner = document.selectFirst("div.detail-container > div.cover_follow")
                 ?.attr("style")?.substringAfter("background-image: url(")?.substringBefore(");"),
 
-            seasons = service.getTvShowSeasons(id.toNumericalId())
-                .select("div.dropdown-menu.dropdown-menu-model > a")
-                .mapIndexed { seasonNumber, seasonElement ->
+            seasons = document
+                .select("#show-seasons .ss-item[data-ss][data-id], .ss-item[data-ss][data-id]")
+                .mapNotNull { seasonElement ->
+                    val seasonNumber =
+                        seasonElement.attr("data-ss").toIntOrNull()
+                            ?: return@mapNotNull null
+
+                    val seasonToken =
+                        seasonElement.attr("data-id")
+                            .takeIf { it.isNotBlank() }
+                            ?: return@mapNotNull null
+
                     Season(
-                        id = seasonElement.attr("data-id"),
-                        number = seasonNumber + 1,
-                        title = seasonElement.text(),
+                        id = seasonToken,
+                        number = seasonNumber,
+                        title = seasonElement.text().trim()
+                            .ifBlank { "Season $seasonNumber" },
                     )
-                },
+                }
+                .distinctBy { it.number },
             genres = document.select("div.elements > .row > div > .row-line")
                 .find { it.select(".type").text().contains("Genre") }
                 ?.select("a")?.map {
@@ -546,21 +565,52 @@ object SflixProvider : Provider {
     override suspend fun getEpisodesBySeason(seasonId: String): List<Episode> {
         val document = service.getSeasonEpisodes(seasonId)
 
-        val episodes = document.select("div.flw-item.film_single-item.episode-item.eps-item")
-            .mapIndexed { episodeNumber, episodeElement ->
+        return document
+            .select("#episodes .swiper-slide, .swiper-slide")
+            .mapIndexedNotNull { index, episodeElement ->
+                val text = episodeElement.text()
+
+                val episodeNumber =
+                    Regex(
+                        """(?:Episode|Ep\.?)\s*(\d+)""",
+                        RegexOption.IGNORE_CASE,
+                    )
+                        .find(text)
+                        ?.groupValues
+                        ?.getOrNull(1)
+                        ?.toIntOrNull()
+                        ?: index + 1
+
+                val episodeId =
+                    episodeElement
+                        .selectFirst("[data-id]")
+                        ?.attr("data-id")
+                        ?.takeIf { it.isNotBlank() }
+                        ?: episodeElement.attr("data-id")
+                            .takeIf { it.isNotBlank() }
+                        ?: "$seasonId#$episodeNumber"
+
                 Episode(
-                    id = episodeElement.attr("data-id"),
-                    number = episodeElement.selectFirst("div.episode-number")
-                        ?.text()?.substringAfter("Episode ")?.substringBefore(":")?.toIntOrNull()
-                        ?: episodeNumber,
-                    title = episodeElement.selectFirst("h3.film-name")
-                        ?.text(),
-                    poster = episodeElement.selectFirst("img")
-                        ?.attr("src"),
+                    id = episodeId,
+                    number = episodeNumber,
+                    title =
+                        episodeElement
+                            .selectFirst(".film-name")
+                            ?.text()
+                            ?.trim()
+                            ?.ifBlank { null }
+                            ?: "Episode $episodeNumber",
+                    poster =
+                        episodeElement
+                            .selectFirst("img")
+                            ?.let { image ->
+                                image.attr("data-src")
+                                    .ifBlank { image.attr("src") }
+                            }
+                            ?.ifBlank { null },
                 )
             }
-
-        return episodes
+            .distinctBy { it.number }
     }
 
 
@@ -725,13 +775,25 @@ object SflixProvider : Provider {
         }
     }
 
-    private fun String.toNumericalId(): String = this.substringAfterLast("-")
+    private fun String.toAbsoluteUrl(): String {
+        if (
+            startsWith("http://", ignoreCase = true) ||
+            startsWith("https://", ignoreCase = true)
+        ) {
+            return this
+        }
+
+        return "${baseUrl.trimEnd('/')}/${trimStart('/')}"
+    }
+
+    private fun String.toNumericalId(): String =
+        trimEnd('/').substringAfterLast("-")
 
 
     private interface SflixService {
 
         companion object {
-            fun build(): SflixService {
+            fun build(baseUrl: String): SflixService {
                 val client = OkHttpClient.Builder()
                     .readTimeout(30, TimeUnit.SECONDS)
                     .connectTimeout(30, TimeUnit.SECONDS)
@@ -739,7 +801,7 @@ object SflixProvider : Provider {
                     .build()
 
                 val retrofit = Retrofit.Builder()
-                    .baseUrl(URL)
+                    .baseUrl(baseUrl.trimEnd('/') + "/")
                     .addConverterFactory(JsoupConverterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(client)
@@ -749,34 +811,34 @@ object SflixProvider : Provider {
             }
         }
 
-        @GET("home")
+        @GET("home/")
         suspend fun getHome(): Document
+
+        @GET
+        suspend fun getPage(
+            @Url url: String,
+        ): Document
 
         @GET("search/{query}")
         suspend fun search(@Path("query") query: String, @Query("page") page: Int): Document
 
-        @GET("movie")
+        @GET("movies/")
         suspend fun getMovies(@Query("page") page: Int): Document
 
-        @GET("tv-show")
+        @GET("tv-series/")
         suspend fun getTvShows(@Query("page") page: Int): Document
 
 
-        @GET("{id}")
-        suspend fun getMovie(@Path("id") id: String): Document
 
         @GET("ajax/episode/list/{id}")
         suspend fun getMovieServers(@Path("id") movieId: String): Document
 
 
-        @GET("{id}")
-        suspend fun getTvShow(@Path("id") id: String): Document
 
-        @GET("ajax/season/list/{id}")
-        suspend fun getTvShowSeasons(@Path("id") tvShowId: String): Document
-
-        @GET("ajax/season/episodes/{id}")
-        suspend fun getSeasonEpisodes(@Path("id") seasonId: String): Document
+        @GET("ajax/ajax.php")
+        suspend fun getSeasonEpisodes(
+            @Query("episode") seasonToken: String,
+        ): Document
 
         @GET("ajax/episode/servers/{id}")
         suspend fun getEpisodeServers(@Path("id") episodeId: String): Document
