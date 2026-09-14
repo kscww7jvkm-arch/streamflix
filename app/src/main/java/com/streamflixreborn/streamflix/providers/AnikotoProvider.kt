@@ -163,31 +163,17 @@ object AnikotoProvider : Provider {
         val document = service.getPage(id.toAbsoluteUrl())
         val detail = parseDetail(document)
         val watchUrl = id.toAbsoluteUrl()
-        val animeId = document.selectFirst("#watch-main[data-id]")?.attr("data-id").orEmpty()
-        val seasons = runCatching {
-            val seasonsResponse = service.getSeasons(animeId, referer = watchUrl)
-            Jsoup.parse(seasonsResponse.result.orEmpty())
-                .select(".season a[href]")
-                .mapIndexedNotNull { index, element ->
-                    val seasonUrl = element.absUrl("href").ifBlank { element.attr("href").toAbsoluteUrl() }
-                    val title = element.selectFirst(".name")?.text()?.trim()?.ifBlank { null }
-                    val seasonNumber = Regex("""(\d+)""")
-                        .find(title.orEmpty())
-                        ?.groupValues
-                        ?.getOrNull(1)
-                        ?.toIntOrNull()
-                        ?: index + 1
-                    Season(
-                        id = seasonUrl,
-                        number = seasonNumber,
-                        title = title?.takeUnless { isGenericSeasonTitle(it) },
-                        poster = Regex("""background-image:\s*url\(['"]?([^'")]+)""")
-                            .find(element.attr("style"))
-                            ?.groupValues
-                            ?.getOrNull(1),
-                    )
-                }
-        }.getOrDefault(emptyList())
+
+        // Anikoto's old /api/seasons/{id} endpoint no longer works.
+        // Each watch page is treated as its own season entry and episodes
+        // are loaded from the current /ajax/episode/list/{id} endpoint.
+        val seasons = listOf(
+            Season(
+                id = watchUrl,
+                number = inferSeasonNumber(detail.title),
+                title = null,
+            )
+        )
 
         return TvShow(
             id = id,
@@ -199,9 +185,7 @@ object AnikotoProvider : Provider {
             rating = detail.rating,
             poster = detail.poster,
             banner = detail.banner,
-            seasons = seasons.ifEmpty {
-                listOf(Season(id = watchUrl, number = inferSeasonNumber(detail.title)))
-            },
+            seasons = seasons,
             genres = detail.genres,
             recommendations = detail.recommendations,
         )
@@ -507,15 +491,6 @@ object AnikotoProvider : Provider {
             @Header("X-Requested-With") requestedWith: String = "XMLHttpRequest",
             @Header("Cookie") cookie: String = COUNTRY_COOKIE,
         ): ServerLinkResponse
-
-        @GET("api/seasons/{id}")
-        suspend fun getSeasons(
-            @Path("id") animeId: String,
-            @Header("Accept") accept: String = AJAX_ACCEPT,
-            @Header("Referer") referer: String,
-            @Header("X-Requested-With") requestedWith: String = "XMLHttpRequest",
-            @Header("Cookie") cookie: String = COUNTRY_COOKIE,
-        ): AjaxHtmlResponse
 
         @GET
         suspend fun getStreamSources(
