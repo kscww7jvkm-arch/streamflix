@@ -12,92 +12,9 @@
 
 
 
-        <PreferenceCategory
-            android:title="@string/settings_tmdb_standard_catalogs">
 
-            <SwitchPreferenceCompat
-                android:key="TMDB_STANDARD_TRENDING"
-                android:title="@string/settings_tmdb_standard_trending"
-                android:summary="@string/settings_tmdb_standard_trending_summary"
-                android:defaultValue="true" />
 
-            <SwitchPreferenceCompat
-                android:key="TMDB_STANDARD_POPULAR_MOVIES"
-                android:title="@string/settings_tmdb_standard_popular_movies"
-                android:summary="@string/settings_tmdb_standard_popular_movies_summary"
-                android:defaultValue="true" />
 
-            <SwitchPreferenceCompat
-                android:key="TMDB_STANDARD_POPULAR_TV"
-                android:title="@string/settings_tmdb_standard_popular_tv"
-                android:summary="@string/settings_tmdb_standard_popular_tv_summary"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_STANDARD_POPULAR_ANIME"
-                android:title="@string/settings_tmdb_standard_popular_anime"
-                android:summary="@string/settings_tmdb_standard_popular_anime_summary"
-                android:defaultValue="true" />
-
-        </PreferenceCategory>
-
-        <PreferenceCategory
-            android:title="@string/settings_tmdb_streaming_catalogs">
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_NETFLIX"
-                android:title="Netflix"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_PRIME"
-                android:title="Prime Video"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_DISNEY"
-                android:title="Disney+"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_APPLE"
-                android:title="Apple TV+"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_MAX"
-                android:title="Max / HBO"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_HULU"
-                android:title="Hulu"
-                android:defaultValue="true" />
-
-        </PreferenceCategory>
-
-        <PreferenceCategory
-            android:title="@string/settings_tmdb_catalog_modes">
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_POPULAR"
-                android:title="@string/settings_tmdb_catalog_popular"
-                android:summary="@string/settings_tmdb_catalog_popular_summary"
-                android:defaultValue="true" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_TOP"
-                android:title="@string/settings_tmdb_catalog_top"
-                android:summary="@string/settings_tmdb_catalog_top_summary"
-                android:defaultValue="false" />
-
-            <SwitchPreferenceCompat
-                android:key="TMDB_CATALOG_NEW"
-                android:title="@string/settings_tmdb_catalog_new"
-                android:summary="@string/settings_tmdb_catalog_new_summary"
-                android:defaultValue="false" />
-
-        </PreferenceCategory>
 
 
         <PreferenceCategory
@@ -344,6 +261,81 @@
         android:summary="@string/settings_screen_provider_summary"
         android:widgetLayout="@layout/preference_widget_chevron"
         app:iconSpaceReserved="false">
+
+        <PreferenceCategory
+            android:key="pc_tmdb_catalog_settings"
+            android:title="@string/settings_tmdb_streaming_catalogs">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_CINEMA_NEW"
+                android:title="@string/settings_tmdb_catalog_cinema_new"
+                android:summary="@string/settings_tmdb_catalog_cinema_new_summary"
+                android:defaultValue="true" />
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_ANIME"
+                android:title="Anime"
+                android:defaultValue="true" />            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_NETFLIX"
+                android:title="Netflix"
+                android:defaultValue="true" />            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_PRIME"
+                android:title="Prime Video"
+                android:defaultValue="true" />            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_DISNEY"
+                android:title="Disney+"
+                android:defaultValue="true" />            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_APPLE"
+                android:title="Apple TV+"
+                android:defaultValue="true" />            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_MAX"
+                android:title="Max / HBO"
+                android:defaultValue="true" />            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_HULU"
+                android:title="Hulu"
+                android:defaultValue="true" />
+        </PreferenceCategory>
+
+        <PreferenceCategory
+            android:key="pc_tmdb_catalog_mode_settings"
+            android:title="@string/settings_tmdb_catalog_modes">
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_POPULAR"
+                android:title="@string/settings_tmdb_catalog_popular"
+                android:summary="@string/settings_tmdb_catalog_popular_summary"
+                android:defaultValue="true" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_TOP"
+                android:title="@string/settings_tmdb_catalog_top"
+                android:summary="@string/settings_tmdb_catalog_top_summary"
+                android:defaultValue="false" />
+
+            <SwitchPreferenceCompat
+                android:key="TMDB_CATALOG_NEW"
+                android:title="@string/settings_tmdb_catalog_new"
+                android:summary="@string/settings_tmdb_catalog_new_summary"
+                android:defaultValue="false" />
+
+        </PreferenceCategory>
+
+
+
 
         <PreferenceCategory
             android:key="pc_provider_settings"

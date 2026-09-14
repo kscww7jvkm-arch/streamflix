@@ -176,4 +176,6 @@
     <string name="settings_tmdb_standard_popular_tv_summary">Pokaż popularne seriale</string>
     <string name="settings_tmdb_standard_popular_anime">Popularne anime</string>
     <string name="settings_tmdb_standard_popular_anime_summary">Pokaż popularne filmy i seriale anime</string>
+    <string name="settings_tmdb_catalog_cinema_new">W kinach / Nowe</string>
+    <string name="settings_tmdb_catalog_cinema_new_summary">Pokaż filmy obecnie w kinach i nowe emitowane seriale</string>
 </resources>

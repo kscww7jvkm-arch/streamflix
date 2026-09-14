@@ -12,6 +12,7 @@ import com.streamflixreborn.streamflix.models.Season
 import com.streamflixreborn.streamflix.models.TvShow
 import com.streamflixreborn.streamflix.models.WatchItem
 import com.streamflixreborn.streamflix.providers.Provider
+import com.streamflixreborn.streamflix.providers.TmdbProvider
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -67,10 +68,28 @@ object HomeCacheStore {
 
     private fun cacheKey(provider: Provider): String {
         val baseUrlKey = provider.baseUrl.trim().trimEnd('/')
+
         return buildList {
             add(provider.name)
+
             if (baseUrlKey.isNotEmpty()) {
                 add(baseUrlKey)
+            }
+
+            if (provider is TmdbProvider) {
+                // TMDb home rows depend on these settings.
+                // Keep provider.name stable and vary only the home-cache key.
+                add("tmdb-home-v3")
+                add(
+                    UserPreferences.tmdbCatalogProviders
+                        .sorted()
+                        .joinToString("_")
+                )
+                add(
+                    UserPreferences.tmdbCatalogModes
+                        .sorted()
+                        .joinToString("_")
+                )
             }
         }.joinToString("__")
     }

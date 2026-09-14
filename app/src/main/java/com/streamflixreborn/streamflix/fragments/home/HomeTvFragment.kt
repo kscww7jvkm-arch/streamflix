@@ -30,7 +30,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.streamflixreborn.streamflix.utils.LoggingUtils
 import com.streamflixreborn.streamflix.utils.UserPreferences
-import com.streamflixreborn.streamflix.utils.ProviderChangeNotifier
 
 class HomeTvFragment : Fragment() {
 
@@ -68,16 +67,6 @@ class HomeTvFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeHome()
-
-        // Lightweight refresh when provider changes
-        viewLifecycleOwner.lifecycleScope.launch {
-            ProviderChangeNotifier.providerChangeFlow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect {
-                viewModel.getHome()
-            }
-        }
-
-        // Initial load
-        viewModel.getHome()
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.state.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect { state ->

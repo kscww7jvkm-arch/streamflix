@@ -24,7 +24,6 @@ import com.streamflixreborn.streamflix.utils.UserPreferences
 import com.streamflixreborn.streamflix.utils.dp
 import com.streamflixreborn.streamflix.utils.CacheUtils
 import com.streamflixreborn.streamflix.utils.LoggingUtils
-import com.streamflixreborn.streamflix.utils.ProviderChangeNotifier
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -63,14 +62,6 @@ class HomeMobileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initializeHome()
-
-        // Lightweight refresh when provider changes
-        viewLifecycleOwner.lifecycleScope.launch {
-            com.streamflixreborn.streamflix.utils.ProviderChangeNotifier.providerChangeFlow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect { viewModel.getHome() }
-        }
-
-        // Initial load
-        viewModel.getHome()
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.state.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect { state ->

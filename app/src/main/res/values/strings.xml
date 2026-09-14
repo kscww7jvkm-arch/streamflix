@@ -635,4 +635,6 @@
     <string name="settings_tmdb_standard_popular_tv_summary">Show popular TV shows</string>
     <string name="settings_tmdb_standard_popular_anime">Popular Anime</string>
     <string name="settings_tmdb_standard_popular_anime_summary">Show popular anime movies and series</string>
+    <string name="settings_tmdb_catalog_cinema_new">In theaters / New</string>
+    <string name="settings_tmdb_catalog_cinema_new_summary">Show movies currently in theaters and newly airing TV series</string>
 </resources>

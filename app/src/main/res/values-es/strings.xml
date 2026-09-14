@@ -517,4 +517,6 @@
     <string name="settings_tmdb_standard_popular_tv_summary">Mostrar series populares</string>
     <string name="settings_tmdb_standard_popular_anime">Anime popular</string>
     <string name="settings_tmdb_standard_popular_anime_summary">Mostrar películas y series de anime populares</string>
+    <string name="settings_tmdb_catalog_cinema_new">En cines / Nuevas</string>
+    <string name="settings_tmdb_catalog_cinema_new_summary">Mostrar películas actualmente en cines y series recién emitidas</string>
 </resources>

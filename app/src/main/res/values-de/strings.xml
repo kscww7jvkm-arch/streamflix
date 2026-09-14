@@ -539,4 +539,6 @@
     <string name="settings_tmdb_standard_popular_tv_summary">Beliebte Serien anzeigen</string>
     <string name="settings_tmdb_standard_popular_anime">Beliebte Anime</string>
     <string name="settings_tmdb_standard_popular_anime_summary">Beliebte Anime-Filme und -Serien anzeigen</string>
+    <string name="settings_tmdb_catalog_cinema_new">Im Kino / Neu</string>
+    <string name="settings_tmdb_catalog_cinema_new_summary">Aktuelle Kinofilme und neu ausgestrahlte Serien anzeigen</string>
 </resources>

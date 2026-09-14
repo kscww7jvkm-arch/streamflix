@@ -560,6 +560,70 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
             isVisible = HasConfigProvider
         }
 
+        val tmdbProviderMap = mapOf(
+            "TMDB_CATALOG_CINEMA_NEW" to "cinema_new",
+            "TMDB_CATALOG_ANIME" to "anime",
+            "TMDB_CATALOG_NETFLIX" to "netflix",
+            "TMDB_CATALOG_PRIME" to "prime",
+            "TMDB_CATALOG_DISNEY" to "disney",
+            "TMDB_CATALOG_APPLE" to "apple",
+            "TMDB_CATALOG_MAX" to "max",
+            "TMDB_CATALOG_HULU" to "hulu",
+        )
+
+        tmdbProviderMap.forEach { (prefKey, valueKey) ->
+            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
+                isChecked =
+                    valueKey in UserPreferences.tmdbCatalogProviders
+
+                setOnPreferenceChangeListener { _, newValue ->
+                    val selected =
+                        UserPreferences.tmdbCatalogProviders
+                            .toMutableSet()
+
+                    if (newValue as Boolean) {
+                        selected.add(valueKey)
+                    } else {
+                        selected.remove(valueKey)
+                    }
+
+                    UserPreferences.tmdbCatalogProviders = selected
+                    ProviderChangeNotifier.notifyProviderChanged()
+                    true
+                }
+            }
+        }
+
+        val tmdbModeMap = mapOf(
+            "TMDB_CATALOG_POPULAR" to "popular",
+            "TMDB_CATALOG_TOP" to "top",
+            "TMDB_CATALOG_NEW" to "new",
+        )
+
+        tmdbModeMap.forEach { (prefKey, valueKey) ->
+            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
+                isChecked =
+                    valueKey in UserPreferences.tmdbCatalogModes
+
+                setOnPreferenceChangeListener { _, newValue ->
+                    val selected =
+                        UserPreferences.tmdbCatalogModes
+                            .toMutableSet()
+
+                    if (newValue as Boolean) {
+                        selected.add(valueKey)
+                    } else {
+                        selected.remove(valueKey)
+                    }
+
+                    UserPreferences.tmdbCatalogModes = selected
+                    ProviderChangeNotifier.notifyProviderChanged()
+                    true
+                }
+            }
+        }
+
+
         if (HasConfigProvider) {
             val provider = UserPreferences.currentProvider
             val configProvider = provider as? ProviderConfigUrl
@@ -668,101 +732,6 @@ class SettingsTvFragment : LeanbackPreferenceFragmentCompat() {
                 true
             }
 
-
-        val tmdbStandardCatalogMap = mapOf(
-            "TMDB_STANDARD_TRENDING" to "trending",
-            "TMDB_STANDARD_POPULAR_MOVIES" to "popular_movies",
-            "TMDB_STANDARD_POPULAR_TV" to "popular_tv",
-            "TMDB_STANDARD_POPULAR_ANIME" to "popular_anime",
-        )
-
-        tmdbStandardCatalogMap.forEach { (prefKey, valueKey) ->
-            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
-                isChecked =
-                    valueKey in UserPreferences.tmdbStandardCatalogs
-
-                setOnPreferenceChangeListener { _, newValue ->
-                    val selected =
-                        UserPreferences.tmdbStandardCatalogs
-                            .toMutableSet()
-
-                    if (newValue as Boolean) {
-                        selected.add(valueKey)
-                    } else {
-                        selected.remove(valueKey)
-                    }
-
-                    UserPreferences.tmdbStandardCatalogs = selected
-                    ProviderChangeNotifier.notifyProviderChanged()
-                    true
-                }
-            }
-        }
-
-        val tmdbProviderMap = mapOf(
-            "TMDB_CATALOG_NETFLIX" to "netflix",
-            "TMDB_CATALOG_PRIME" to "prime",
-            "TMDB_CATALOG_DISNEY" to "disney",
-            "TMDB_CATALOG_APPLE" to "apple",
-            "TMDB_CATALOG_MAX" to "max",
-            "TMDB_CATALOG_HULU" to "hulu",
-        )
-
-        tmdbProviderMap.forEach { (prefKey, valueKey) ->
-            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
-                isChecked =
-                    valueKey in UserPreferences.tmdbCatalogProviders
-
-                setOnPreferenceChangeListener { _, newValue ->
-                    val selected =
-                        UserPreferences.tmdbCatalogProviders
-                            .toMutableSet()
-
-                    if (newValue as Boolean) {
-                        selected.add(valueKey)
-                    } else {
-                        selected.remove(valueKey)
-                    }
-
-                    UserPreferences.tmdbCatalogProviders = selected
-                    ProviderChangeNotifier.notifyProviderChanged()
-                    true
-                }
-            }
-        }
-
-        val tmdbModeMap = mapOf(
-            "TMDB_CATALOG_POPULAR" to "popular",
-            "TMDB_CATALOG_TOP" to "top",
-            "TMDB_CATALOG_NEW" to "new",
-        )
-
-        tmdbModeMap.forEach { (prefKey, valueKey) ->
-            findPreference<SwitchPreferenceCompat>(prefKey)?.apply {
-                isChecked =
-                    valueKey in UserPreferences.tmdbCatalogModes
-
-                setOnPreferenceChangeListener { _, newValue ->
-                    val selected =
-                        UserPreferences.tmdbCatalogModes
-                            .toMutableSet()
-
-                    if (newValue as Boolean) {
-                        selected.add(valueKey)
-                    } else {
-                        selected.remove(valueKey)
-                    }
-
-                    if (selected.isEmpty()) {
-                        selected.add("popular")
-                    }
-
-                    UserPreferences.tmdbCatalogModes = selected
-                    ProviderChangeNotifier.notifyProviderChanged()
-                    true
-                }
-            }
-        }
 
 findPreference<EditTextPreference>("provider_url")?.apply {
                 isVisible = configProvider != null
@@ -1734,6 +1703,8 @@ findPreference<EditTextPreference>("provider_url")?.apply {
         val isCuevana = UserPreferences.currentProvider?.name == "Cuevana 3"
         val isPoseidon = UserPreferences.currentProvider?.name == "Poseidonhd2"
         val isAnimeOnlineNinja = UserPreferences.currentProvider is AnimeOnlineNinjaProvider
+        val isTmdb =
+            UserPreferences.currentProvider is TmdbProvider
         val currentProviderName =
             UserPreferences.currentProvider?.name.orEmpty()
 
@@ -1771,9 +1742,18 @@ findPreference<EditTextPreference>("provider_url")?.apply {
                 isVavooVod ||
                 isVavooLive ||
                 isKellerKino ||
+                isTmdb ||
                 hasGenericDomain
 
-findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
+        findPreference<PreferenceCategory>(
+            "pc_tmdb_catalog_settings"
+        )?.isVisible = isTmdb
+
+        findPreference<PreferenceCategory>(
+            "pc_tmdb_catalog_mode_settings"
+        )?.isVisible = isTmdb
+
+        findPreference<PreferenceCategory>("pc_generic_provider_domain_settings")?.isVisible =
             hasGenericDomain
         findPreference<PreferenceCategory>("pc_streamingcommunity_settings")?.isVisible = isStreamingCommunity
         findPreference<PreferenceCategory>("pc_serienstream_settings")?.isVisible = isSerienStream

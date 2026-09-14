@@ -515,4 +515,6 @@
     <string name="settings_tmdb_standard_popular_tv_summary">Mostra le serie TV popolari</string>
     <string name="settings_tmdb_standard_popular_anime">Anime popolari</string>
     <string name="settings_tmdb_standard_popular_anime_summary">Mostra film e serie anime popolari</string>
+    <string name="settings_tmdb_catalog_cinema_new">Al cinema / Novità</string>
+    <string name="settings_tmdb_catalog_cinema_new_summary">Mostra i film attualmente al cinema e le nuove serie in onda</string>
 </resources>

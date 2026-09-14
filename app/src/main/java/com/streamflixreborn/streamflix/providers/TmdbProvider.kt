@@ -80,59 +80,29 @@ class TmdbProvider(override val language: String) : Provider {
             }
         }
 
-        val selectedStandardCatalogs =
-            UserPreferences.tmdbStandardCatalogs
-
-        val trendingDeferred = if ("trending" in selectedStandardCatalogs) {
-            async {
+        val trendingDeferred = async {
             awaitAll(
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 1, language = language) },
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 2, language = language) },
                 async { TMDb3.Trending.all(TMDb3.Params.TimeWindow.DAY, page = 3, language = language) },
             ).flatMap { it.results }
-            }
-        } else null
+        }
 
-        val popularMoviesDeferred = if ("popular_movies" in selectedStandardCatalogs) {
-            async {
+        val popularMoviesDeferred = async {
             awaitAll(
                 async { TMDb3.MovieLists.popular(page = 1, language = language) },
                 async { TMDb3.MovieLists.popular(page = 2, language = language) },
                 async { TMDb3.MovieLists.popular(page = 3, language = language) },
             ).flatMap { it.results }
-            }
-        } else null
+        }
 
-        val popularTvShowsDeferred = if ("popular_tv" in selectedStandardCatalogs) {
-            async {
+        val popularTvShowsDeferred = async {
             awaitAll(
                 async { TMDb3.TvSeriesLists.popular(page = 1, language = language) },
                 async { TMDb3.TvSeriesLists.popular(page = 2, language = language) },
                 async { TMDb3.TvSeriesLists.popular(page = 3, language = language) },
             ).flatMap { it.results }
-            }
-        } else null
-
-        val popularAnimeDeferred = if ("popular_anime" in selectedStandardCatalogs) {
-            async {
-            awaitAll(
-                async {
-                    TMDb3.Discover.movie(
-                        language = language,
-                        withKeywords = TMDb3.Params.WithBuilder(TMDb3.Keyword.KeywordId.ANIME)
-                            .or(TMDb3.Keyword.KeywordId.BASED_ON_ANIME),
-                    )
-                },
-                async {
-                    TMDb3.Discover.tv(
-                        language = language,
-                        withKeywords = TMDb3.Params.WithBuilder(TMDb3.Keyword.KeywordId.ANIME)
-                            .or(TMDb3.Keyword.KeywordId.BASED_ON_ANIME),
-                    )
-                },
-            ).flatMap { it.results }
-            }
-        } else null
+        }
 
         // TMDB_CONFIGURABLE_STREAMING_CATALOGS_V1
         data class StreamingCatalog(
@@ -140,9 +110,17 @@ class TmdbProvider(override val language: String) : Provider {
             val label: String,
             val movieProvider: TMDb3.Provider.WatchProviderId?,
             val tvNetwork: TMDb3.Network.NetworkId?,
+            val anime: Boolean = false,
         )
 
         val availableStreamingCatalogs = listOf(
+            StreamingCatalog(
+                key = "anime",
+                label = "Anime",
+                movieProvider = null,
+                tvNetwork = null,
+                anime = true,
+            ),
             StreamingCatalog(
                 "netflix",
                 "Netflix",
@@ -180,8 +158,11 @@ class TmdbProvider(override val language: String) : Provider {
                 TMDb3.Network.NetworkId.HULU,
             ),
         ).filter {
-            it.movieProvider != null || it.tvNetwork != null
+            it.movieProvider != null || it.tvNetwork != null || it.anime
         }
+
+        val cinemaNewEnabled =
+            "cinema_new" in UserPreferences.tmdbCatalogProviders
 
         val selectedStreamingCatalogs =
             availableStreamingCatalogs.filter {
@@ -190,7 +171,6 @@ class TmdbProvider(override val language: String) : Provider {
 
         val selectedCatalogModes =
             UserPreferences.tmdbCatalogModes
-                .ifEmpty { setOf("popular") }
 
         suspend fun loadStreamingCatalog(
             catalog: StreamingCatalog,
@@ -217,6 +197,33 @@ class TmdbProvider(override val language: String) : Provider {
 
                 else ->
                     TMDb3.Params.SortBy.Tv.POPULARITY_DESC
+            }
+
+            if (catalog.anime) {
+                val animeKeywords =
+                    TMDb3.Params.WithBuilder(TMDb3.Keyword.KeywordId.ANIME)
+                        .or(TMDb3.Keyword.KeywordId.BASED_ON_ANIME)
+
+                val animeMovies = async {
+                    TMDb3.Discover.movie(
+                        language = language,
+                        sortBy = movieSort,
+                        withKeywords = animeKeywords,
+                    ).results.map { it as TMDb3.MultiItem }
+                }
+
+                val animeTvShows = async {
+                    TMDb3.Discover.tv(
+                        language = language,
+                        sortBy = tvSort,
+                        withKeywords = animeKeywords,
+                    ).results.map { it as TMDb3.MultiItem }
+                }
+
+                return@coroutineScope buildList {
+                    addAll(animeMovies.await())
+                    addAll(animeTvShows.await())
+                }
             }
 
             val movies = catalog.movieProvider?.let { provider ->
@@ -249,6 +256,61 @@ class TmdbProvider(override val language: String) : Provider {
             }
         }
 
+        val cinemaMoviesDeferred =
+            if (cinemaNewEnabled) {
+                async {
+                    awaitAll(
+                        async {
+                            TMDb3.MovieLists.nowPlaying(
+                                language = language,
+                                page = 1,
+                                region = watchRegion,
+                            )
+                        },
+                        async {
+                            TMDb3.MovieLists.nowPlaying(
+                                language = language,
+                                page = 2,
+                                region = watchRegion,
+                            )
+                        },
+                        async {
+                            TMDb3.MovieLists.nowPlaying(
+                                language = language,
+                                page = 3,
+                                region = watchRegion,
+                            )
+                        },
+                    ).flatMap { it.results }
+                }
+            } else null
+
+        val newSeriesDeferred =
+            if (cinemaNewEnabled) {
+                async {
+                    awaitAll(
+                        async {
+                            TMDb3.TvSeriesLists.airingToday(
+                                language = language,
+                                page = 1,
+                            )
+                        },
+                        async {
+                            TMDb3.TvSeriesLists.airingToday(
+                                language = language,
+                                page = 2,
+                            )
+                        },
+                        async {
+                            TMDb3.TvSeriesLists.airingToday(
+                                language = language,
+                                page = 3,
+                            )
+                        },
+                    ).flatMap { it.results }
+                }
+            } else null
+
         val streamingCatalogDeferred =
             selectedStreamingCatalogs.flatMap { catalog ->
                 selectedCatalogModes.map { mode ->
@@ -262,9 +324,9 @@ class TmdbProvider(override val language: String) : Provider {
                 }
             }
 
-        val trending = trendingDeferred?.await().orEmpty()
+        val trending = trendingDeferred.await()
 
-        if ("trending" in selectedStandardCatalogs && trending.isNotEmpty()) {
+        if (trending.isNotEmpty()) {
             categories.add(
                 Category(
                     name = Category.FEATURED,
@@ -283,50 +345,78 @@ class TmdbProvider(override val language: String) : Provider {
             )
         }
 
-        if ("popular_movies" in selectedStandardCatalogs) {
-            categories.add(
-                Category(
-                    name = getTranslation("Popular Movies"),
-                    list =
-                        popularMoviesDeferred
-                            ?.await()
-                            .orEmpty()
-                            .mapNotNull(mapMulti)
-                )
+        categories.add(
+            Category(
+                name = getTranslation("Popular Movies"),
+                list =
+                    popularMoviesDeferred
+                        .await()
+                        .mapNotNull(mapMulti)
             )
-        }
+        )
 
-        if ("popular_tv" in selectedStandardCatalogs) {
-            categories.add(
-                Category(
-                    name = getTranslation("Popular TV Shows"),
-                    list =
-                        popularTvShowsDeferred
-                            ?.await()
-                            .orEmpty()
-                            .mapNotNull(mapMulti)
-                )
+        categories.add(
+            Category(
+                name = getTranslation("Popular TV Shows"),
+                list =
+                    popularTvShowsDeferred
+                        .await()
+                        .mapNotNull(mapMulti)
             )
-        }
+        )
 
-        if ("popular_anime" in selectedStandardCatalogs) {
-            categories.add(
-                Category(
-                    name = getTranslation("Popular Anime"),
-                    list =
-                        popularAnimeDeferred
-                            ?.await()
-                            .orEmpty()
-                            .sortedByDescending {
-                                when (it) {
-                                    is TMDb3.Movie -> it.popularity
-                                    is TMDb3.Person -> it.popularity
-                                    is TMDb3.Tv -> it.popularity
-                                }
-                            }
-                            .mapNotNull(mapMulti),
+        if (cinemaNewEnabled) {
+            val cinemaMovies =
+                cinemaMoviesDeferred
+                    ?.await()
+                    .orEmpty()
+                    .distinctBy { it.id }
+                    .mapNotNull(mapMulti)
+
+            val newSeries =
+                newSeriesDeferred
+                    ?.await()
+                    .orEmpty()
+                    .distinctBy { it.id }
+                    .mapNotNull(mapMulti)
+
+            val cinemaLabel =
+                when (language.lowercase()) {
+                    "de" -> "Im Kino · Filme"
+                    "es" -> "En cines · Películas"
+                    "fr" -> "Au cinéma · Films"
+                    "it" -> "Al cinema · Film"
+                    "pl" -> "W kinach · Filmy"
+                    else -> "In Theaters · Movies"
+                }
+
+            val newSeriesLabel =
+                when (language.lowercase()) {
+                    "de" -> "Neu · Serien"
+                    "es" -> "Nuevas · Series"
+                    "fr" -> "Nouvelles · Séries"
+                    "it" -> "Nuove · Serie"
+                    "pl" -> "Nowe · Seriale"
+                    else -> "New · TV Shows"
+                }
+
+            if (cinemaMovies.isNotEmpty()) {
+                categories.add(
+                    Category(
+                        name = cinemaLabel,
+                        list = cinemaMovies,
+                    )
                 )
-            )
+            }
+
+            if (newSeries.isNotEmpty()) {
+                categories.add(
+                    Category(
+                        name = newSeriesLabel,
+                        list = newSeries,
+                    )
+                )
+            }
         }
 
         streamingCatalogDeferred.forEach { (catalog, mode, deferred) ->

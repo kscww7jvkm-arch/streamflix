@@ -218,6 +218,21 @@ object TMDb3 {
 
     object MovieLists {
 
+        suspend fun nowPlaying(
+            language: String? = null,
+            page: Int? = null,
+            region: String? = null,
+        ): PageResult<Movie> {
+            val params = mapOf(
+                Params.Key.LANGUAGE to language,
+                Params.Key.PAGE to page?.toString(),
+                Params.Key.REGION to region,
+            )
+            return service.getNowPlayingMovies(
+                params = params.filterNotNullValues(),
+            )
+        }
+
         suspend fun popular(
             certification: String? = null,
             certificationRange: Params.Range<String>? = null,
@@ -1001,6 +1016,11 @@ object TMDb3 {
             @QueryMap params: Map<String, String> = emptyMap(),
         ): GenresResponse
 
+
+        @GET("movie/now_playing")
+        suspend fun getNowPlayingMovies(
+            @QueryMap params: Map<String, String> = emptyMap(),
+        ): PageResult<Movie>
 
         @GET("movie/popular")
         suspend fun getPopularMovies(

@@ -22,7 +22,9 @@ import com.streamflixreborn.streamflix.utils.UserDataCache.toEpisode
 import com.streamflixreborn.streamflix.utils.UserDataCache.toMovie
 import com.streamflixreborn.streamflix.utils.UserPreferences
 import com.streamflixreborn.streamflix.utils.combine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -64,6 +66,7 @@ class HomeViewModel(database: AppDatabase) : ViewModel() {
     private val continueWatchingSeasonEpisodesCache = ConcurrentHashMap<String, List<Episode>>()
     private val _userDataCache = MutableStateFlow<UserDataCache.UserData?>(null)
     private var currentProvider: Provider? = null
+    private var homeLoadJob: Job? = null
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val state: Flow<State> = combine(
@@ -399,7 +402,10 @@ class HomeViewModel(database: AppDatabase) : ViewModel() {
         }.awaitAll()
     }
 
-    fun getHome() = viewModelScope.launch(Dispatchers.IO) {
+    fun getHome(): Job {
+        homeLoadJob?.cancel()
+
+        val job = viewModelScope.launch(Dispatchers.IO) {
         val provider = UserPreferences.currentProvider ?: run {
             _state.emit(State.FailedLoading(IllegalStateException("No provider selected")))
             return@launch
@@ -424,6 +430,8 @@ class HomeViewModel(database: AppDatabase) : ViewModel() {
             val categories = provider.getHome()
             HomeCacheStore.write(appContext, provider, categories)
             _state.emit(State.SuccessLoading(categories))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("HomeViewModel", "getHome: ", e)
             if (cachedCategories.isNullOrEmpty()) {
@@ -432,6 +440,10 @@ class HomeViewModel(database: AppDatabase) : ViewModel() {
                 _state.emit(State.SuccessLoading(cachedCategories))
             }
         }
+        }
+
+        homeLoadJob = job
+        return job
     }
 
     private fun loadUserDataCache(provider: Provider) {

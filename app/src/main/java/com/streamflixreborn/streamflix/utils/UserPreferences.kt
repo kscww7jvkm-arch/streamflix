@@ -422,6 +422,8 @@ object UserPreferences {
     var tmdbCatalogProviders: Set<String>
         get() = Key.TMDB_CATALOG_PROVIDERS.getStringSet()
             ?: setOf(
+                "cinema_new",
+                "anime",
                 "netflix",
                 "prime",
                 "disney",
@@ -445,7 +447,6 @@ object UserPreferences {
                     "trending",
                     "popular_movies",
                     "popular_tv",
-                    "popular_anime",
                 )
         set(value) =
             Key.TMDB_STANDARD_CATALOGS.setStringSet(value)
