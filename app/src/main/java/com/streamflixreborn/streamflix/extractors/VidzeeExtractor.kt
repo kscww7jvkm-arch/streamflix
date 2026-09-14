@@ -1,6 +1,8 @@
 package com.streamflixreborn.streamflix.extractors
 
+import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import androidx.media3.common.MimeTypes
 import com.streamflixreborn.streamflix.models.Video
 import okhttp3.OkHttpClient
@@ -16,6 +18,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 class VidzeeExtractor : Extractor() {
+
+    private companion object {
+        const val TAG = "VidzeeExtractor"
+    }
     override val name = "Vidzee"
     override val mainUrl = "https://player.vidzee.wtf"
     private val coreApi = "https://core.vidzee.wtf"
@@ -65,7 +71,15 @@ class VidzeeExtractor : Extractor() {
     }
 
     override suspend fun extract(link: String): Video = coroutineScope {
-        val masterKey = getMasterKey() ?: throw Exception("Failed to get Vidzee master key")
+        // VIDZEE_DIRECT_API_V1
+        // Current Vidzee exposes direct, unencrypted playback URLs through
+        // core.vidzee.wtf. Keep the previous encrypted API below as fallback.
+        tryDirectStream(link)?.let {
+            return@coroutineScope it
+        }
+
+        val masterKey = getMasterKey()
+            ?: throw Exception("Failed to get Vidzee master key")
         
         try {
             val request = Request.Builder()
@@ -121,6 +135,187 @@ class VidzeeExtractor : Extractor() {
         } catch (e: Exception) {
             throw Exception("Failed to extract video: ${e.message}")
         }
+    }
+
+    private fun tryDirectStream(
+        link: String,
+    ): Video? {
+        val uri = runCatching {
+            Uri.parse(link)
+        }.getOrNull() ?: return null
+
+        val tmdbId = uri
+            .getQueryParameter("id")
+            ?.takeIf { it.isNotBlank() }
+            ?: return null
+
+        val season = uri
+            .getQueryParameter("ss")
+            ?.takeIf { it.isNotBlank() }
+
+        val episode = uri
+            .getQueryParameter("ep")
+            ?.takeIf { it.isNotBlank() }
+
+        val isEpisode =
+            season != null &&
+                episode != null
+
+        /*
+         * Live checks 2026-09-14:
+         *
+         * Movies:
+         *   dcloud  -> 200
+         *   tik     -> 200
+         *   ipcloud -> may return 502
+         *
+         * TV:
+         *   ipcloud -> 200
+         *   dcloud  -> may return 502
+         *   tik     -> may return 502
+         *
+         * Do not hard-fail on one backend. Try the currently preferred
+         * backend first and automatically continue on server-side errors.
+         */
+        val directServers = if (isEpisode) {
+            listOf(
+                "ipcloud",
+                "dcloud",
+                "tik",
+            )
+        } else {
+            listOf(
+                "dcloud",
+                "tik",
+                "ipcloud",
+            )
+        }
+
+        for (directServer in directServers) {
+            val endpoint = if (isEpisode) {
+                "$coreApi/streams/tv/" +
+                    "$tmdbId/$season/$episode" +
+                    "?s=$directServer&e=0"
+            } else {
+                "$coreApi/streams/movie/" +
+                    "$tmdbId" +
+                    "?s=$directServer&e=0"
+            }
+
+            val request = Request.Builder()
+                .url(endpoint)
+                .header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                        "Chrome/140.0.0.0 Safari/537.36"
+                )
+                .header(
+                    "Accept",
+                    "application/json,text/plain,*/*",
+                )
+                .header(
+                    "Origin",
+                    mainUrl,
+                )
+                .header(
+                    "Referer",
+                    "$mainUrl/",
+                )
+                .build()
+
+            val video = runCatching {
+                client.newCall(request).execute().use { response ->
+                    Log.d(
+                        TAG,
+                        "Direct $directServer HTTP ${response.code} " +
+                            "type=${if (isEpisode) "tv" else "movie"} " +
+                            "id=$tmdbId",
+                    )
+
+                    if (!response.isSuccessful) {
+                        return@use null
+                    }
+
+                    val raw = response.body
+                        ?.string()
+                        .orEmpty()
+
+                    val json = JSONObject(raw)
+
+                    val source = json
+                        .optString("url")
+                        .trim()
+
+                    if (source.isBlank()) {
+                        return@use null
+                    }
+
+                    val headers =
+                        linkedMapOf<String, String>(
+                            "Referer" to "$mainUrl/",
+                            "Origin" to mainUrl,
+                            "User-Agent" to
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                                "Chrome/140.0.0.0 Safari/537.36",
+                        )
+
+                    json.optJSONObject("headers")
+                        ?.let { sourceHeaders ->
+                            val keys =
+                                sourceHeaders.keys()
+
+                            while (keys.hasNext()) {
+                                val key = keys.next()
+
+                                val value =
+                                    sourceHeaders
+                                        .optString(key)
+                                        .trim()
+
+                                if (value.isNotBlank()) {
+                                    headers[key] = value
+                                }
+                            }
+                        }
+
+                    Log.d(
+                        TAG,
+                        "Direct $directServer selected " +
+                            "source=${source.take(160)}",
+                    )
+
+                    Video(
+                        source = source,
+                        headers = headers,
+                        type = if (
+                            source
+                                .substringBefore("?")
+                                .endsWith(
+                                    ".m3u8",
+                                    ignoreCase = true,
+                                )
+                        ) {
+                            MimeTypes.APPLICATION_M3U8
+                        } else {
+                            MimeTypes.VIDEO_MP4
+                        },
+                    )
+                }
+            }.getOrNull()
+
+            if (video != null) {
+                return video
+            }
+        }
+
+        Log.d(
+            TAG,
+            "Direct API exhausted; using legacy Vidzee extractor",
+        )
+
+        return null
     }
 
     private fun getMasterKey(): String? {
