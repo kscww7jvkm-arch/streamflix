@@ -3,6 +3,7 @@ package com.streamflixreborn.streamflix.utils
 import com.streamflixreborn.streamflix.models.ContentRating
 import com.streamflixreborn.streamflix.models.Video
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CancellationException
 
 /** Single entry point for certification metadata used by details, parental controls and playback. */
 object ContentRatingRepository {
@@ -11,16 +12,36 @@ object ContentRatingRepository {
 
     suspend fun movie(
         tmdbId: Int?, title: String, year: Int? = null, language: String? = null,
-    ): ContentRating? = cached("movie:${tmdbId ?: title.lowercase()}:${year ?: ""}:${preferenceKey(language)}") {
-        tmdbId?.let { TmdbUtils.getMovieContentRatingById(it, language) }
-            ?: TmdbUtils.getMovieContentRating(title, year, language)
+    ): ContentRating? {
+        if (!UserPreferences.enableTmdb) return null
+
+        val key =
+            "movie:${tmdbId ?: title.lowercase()}:${year ?: ""}:${preferenceKey(language)}"
+
+        // A lookup performed while TMDb was disabled must never leave
+        // a stale negative-cache entry after TMDb is enabled again.
+        missing.remove(key)
+
+        return cached(key) {
+            tmdbId?.let { TmdbUtils.getMovieContentRatingById(it, language) }
+                ?: TmdbUtils.getMovieContentRating(title, year, language)
+        }
     }
 
     suspend fun series(
         tmdbId: Int?, title: String, year: Int? = null, language: String? = null,
-    ): ContentRating? = cached("tv:${tmdbId ?: title.lowercase()}:${year ?: ""}:${preferenceKey(language)}") {
-        tmdbId?.let { TmdbUtils.getTvShowContentRatingById(it, language) }
-            ?: TmdbUtils.getTvShowContentRating(title, year, language)
+    ): ContentRating? {
+        if (!UserPreferences.enableTmdb) return null
+
+        val key =
+            "tv:${tmdbId ?: title.lowercase()}:${year ?: ""}:${preferenceKey(language)}"
+
+        missing.remove(key)
+
+        return cached(key) {
+            tmdbId?.let { TmdbUtils.getTvShowContentRatingById(it, language) }
+                ?: TmdbUtils.getTvShowContentRating(title, year, language)
+        }
     }
 
     /**
@@ -60,9 +81,22 @@ object ContentRatingRepository {
     private suspend fun cached(key: String, loader: suspend () -> ContentRating?): ContentRating? {
         cache[key]?.let { return it }
         if (key in missing) return null
-        val value = runCatching { loader() }.getOrNull()
-        if (value == null) missing += key else cache[key] = value
-        return value
+
+        return try {
+            loader().also { value ->
+                if (value == null) {
+                    missing += key
+                } else {
+                    cache[key] = value
+                }
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            // Temporary network/API/parsing failures must not become
+            // a session-long negative cache entry.
+            null
+        }
     }
 
     internal fun preferenceKey(language: String?): String = language
